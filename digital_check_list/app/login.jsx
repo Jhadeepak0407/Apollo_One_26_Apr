@@ -1,4 +1,4 @@
-import { StylesSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { fontSizes } from "../projects/digital_check_list/constants/theme";
 export default function App() {
     return (<View>
@@ -9,7 +9,7 @@ export default function App() {
 }
 
 
-const styles = StylesSheet.create({
+const styles = StyleSheet.create({
     title: {
         color: "red",
         fontSize: fontSizes.primary
