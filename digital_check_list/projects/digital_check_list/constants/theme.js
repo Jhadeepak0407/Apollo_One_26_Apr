@@ -1,3 +1,3 @@
 export const fontSizes = {
-    primary: 14
+    primary:14
 }
