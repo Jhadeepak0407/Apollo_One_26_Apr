@@ -77,8 +77,17 @@ const LoginScreen = () => {
 
   const handleResponse = async (response) => {
     const data = await response.text();
+
+    const jsonData = JSON.parse(data);
     console.log(data);
-    console.log(typeof data)
+    console.log(typeof data);
+    console.log(typeof jsonData);
+    console.log(jsonData.token);
+
+    if(jsonData.token.length>10){
+      router.replace("applist");
+    }
+
   };
 
   const handleError = (error) => {
