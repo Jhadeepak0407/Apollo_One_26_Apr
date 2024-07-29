@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { useRouter } from "expo-router";
-import { View, TextInput, Button, Image, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Pressable, Text, StatusBar, ActivityIndicator } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { View, TextInput, Image, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Pressable, Text, StatusBar, ActivityIndicator, TouchableOpacity } from 'react-native';
+//import { Picker } from '@react-native-picker/picker';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const logo = require('../assets/digital_check_list/images/apollo-logo.png');
 
 const LoginScreen = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('1245701');
+  const [password, setPassword] = useState('Imcl@12345678');
   const [location, setLocation] = useState('10701');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [usernameError, setUsernameError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [isPasswordVisible, setPasswordVisible] = useState(false);
   const router = useRouter();
 
   const handleLogin = async () => {
@@ -22,14 +24,18 @@ const LoginScreen = () => {
 
     try {
       const response = await makeApiCall();
-      handleResponse(response);
+      console.log(typeof response);
+      const tokenNo = response.token;
+      if (tokenNo.length > 10) {
+        router.replace('applist');
+      }
+      // console.log(tokenNo);
     } catch (error) {
       handleError(error);
     } finally {
       setLoading(false);
     }
-    
-   
+
   };
 
   const validateForm = () => {
@@ -56,43 +62,39 @@ const LoginScreen = () => {
   };
 
   const makeApiCall = async () => {
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
+    try {
+      const raw = JSON.stringify({
+        username: username,
+        password: password,
+        locationid: location
+      });
 
-    const raw = JSON.stringify({
-      username: username,
-      password: password,
-      locationid: location
-    });
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: raw,
+      };
 
-    const requestOptions = {
-      method: "POST",
-      headers: myHeaders,
-      body: raw,
-      redirect: "follow",
-    };
+      const response = await fetch("http://10.10.9.89:202/api/Users/Login", requestOptions);
+      const data = await response.json();
+      return data;
+    } catch (e) {
+      console.log("error", e)
+      return {
 
-    return await fetch("http://10.10.9.89:202/api/Users/login", requestOptions);
-  };
-
-  const handleResponse = async (response) => {
-    const data = await response.text();
-
-    const jsonData = JSON.parse(data);
-    console.log(data);
-    console.log(typeof data);
-    console.log(typeof jsonData);
-    console.log(jsonData.token);
-
-    if(jsonData.token.length>10){
-      router.replace("applist");
+      }
     }
-
   };
 
   const handleError = (error) => {
     setError(error);
     console.error("Error during authentication:", error);
+  };
+
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!isPasswordVisible);
   };
 
   return (
@@ -110,15 +112,23 @@ const LoginScreen = () => {
           onChangeText={setUsername}
         />
         {usernameError ? <Text style={styles.errorText}>{usernameError}</Text> : null}
-        <TextInput
-          style={styles.input}
-          placeholder="MedMantra Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="MedMantra Password"
+            secureTextEntry={!isPasswordVisible}
+            value={password}
+            onChangeText={setPassword}
+          />
+          <TouchableOpacity
+            style={styles.icon}
+            onPress={togglePasswordVisibility}
+          >
+            <Icon name={isPasswordVisible ? 'visibility' : 'visibility-off'} size={24} color="gray" />
+          </TouchableOpacity>
+        </View>
         {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
-        <View style={styles.pickerContainer}>
+        {/* <View style={styles.pickerContainer}>
           <Picker
             selectedValue={location}
             style={styles.input}
@@ -128,21 +138,23 @@ const LoginScreen = () => {
             <Picker.Item label="MUMBAI" value="MUMBAI" />
             <Picker.Item label="CHENNAI" value="CHENNAI" />
           </Picker>
-        </View>
+        </View> */}
         {error && (
           <Text style={styles.errorText}>{error}</Text>
         )}
-        {loading ? (
-          <ActivityIndicator size="large" color="#FFFFFF" />
-        ) : (
-          <Pressable style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Login</Text>
-          </Pressable>
-        )}
-      </ScrollView>
-    </KeyboardAvoidingView>);
-};
 
+        <Pressable style={styles.button} onPress={handleLogin}>
+          {loading ? (
+            <ActivityIndicator size="large" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.buttonText}>Login</Text>
+          )}
+        </Pressable>
+
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -165,11 +177,20 @@ const styles = StyleSheet.create({
     height: 60,
     borderColor: '#ccc',
     borderWidth: 1,
-    marginBottom: 10,
+    marginBottom: 15,
     paddingHorizontal: 10,
     width: '100%',
     backgroundColor: '#fff',
     borderRadius: 15,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+  },
+  icon: {
+    position: 'absolute',
+    right: 10,
   },
   pickerContainer: {
     width: "100%",
