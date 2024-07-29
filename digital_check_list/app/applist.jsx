@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, Animated, Easing } 
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
 import SearchableDropdown from 'react-native-searchable-dropdown';
+import axios from 'axios';
 
 const menuItems = [
   { name: 'Digital CheckList', icon: 'checklist', color: '#4CAF50' },
@@ -13,20 +14,27 @@ const menuItems = [
   // Add more menu items as needed
 ];
 
-const locations = [
-  { id: '10701', name: 'DELHI' },
-  { id: 'MUMBAI', name: 'MUMBAI' },
-  { id: 'CHENNAI', name: 'CHENNAI' },
-];
-
 const HomeScreen = () => {
-  const [location, setLocation] = useState(locations[0]);
-
-  const animatedValue = menuItems.map(() => new Animated.Value(0));
+  const [locations, setLocations] = useState([]);
+  const [location, setLocation] = useState(null);
+  const [animatedValues, setAnimatedValues] = useState(menuItems.map(() => new Animated.Value(0)));
 
   useEffect(() => {
-    const animations = menuItems.map((item, index) => {
-      return Animated.timing(animatedValue[index], {
+    axios.get('http://10.10.9.89:202/api/Users/GetAllLocationList')
+      .then(response => {
+        const fetchedLocations = response.data.map(loc => ({
+          id: loc.location_Id,
+          name: loc.location_Display_Name
+        }));
+        setLocations(fetchedLocations);
+        setLocation(fetchedLocations[0]);
+      })
+      .catch(error => {
+        console.error('Error fetching location data:', error);
+      });
+
+    const animations = animatedValues.map((animatedValue, index) => {
+      return Animated.timing(animatedValue, {
         toValue: 1,
         duration: 500,
         delay: index * 100,
@@ -41,15 +49,15 @@ const HomeScreen = () => {
   const renderItem = ({ item, index }) => {
     const animatedStyle = {
       transform: [
-        { scale: animatedValue[index] },
+        { scale: animatedValues[index] },
         {
-          translateY: animatedValue[index].interpolate({
+          translateY: animatedValues[index].interpolate({
             inputRange: [0, 1],
             outputRange: [50, 0],
           }),
         },
       ],
-      opacity: animatedValue[index].interpolate({
+      opacity: animatedValues[index].interpolate({
         inputRange: [0, 1],
         outputRange: [0, 1],
       }),
