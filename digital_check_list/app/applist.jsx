@@ -1,6 +1,7 @@
-import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Animated, Easing } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import React, { useState, useEffect } from 'react';
+import SearchableDropdown from 'react-native-searchable-dropdown';
 
 const menuItems = [
   { name: 'Digital CheckList', icon: 'checklist', color: '#4CAF50' },
@@ -12,16 +13,41 @@ const menuItems = [
   // Add more menu items as needed
 ];
 
+const locations = [
+  { id: '10701', name: 'DELHI' },
+  { id: 'MUMBAI', name: 'MUMBAI' },
+  { id: 'CHENNAI', name: 'CHENNAI' },
+];
+
 const HomeScreen = () => {
+  const [location, setLocation] = useState(locations[0]);
+
+  const animatedValue = menuItems.map(() => new Animated.Value(0));
+
+  useEffect(() => {
+    const animations = menuItems.map((item, index) => {
+      return Animated.timing(animatedValue[index], {
+        toValue: 1,
+        duration: 500,
+        delay: index * 100,
+        easing: Easing.out(Easing.exp),
+        useNativeDriver: true,
+      });
+    });
+
+    Animated.stagger(100, animations).start();
+  }, []);
+
   const renderItem = ({ item, index }) => {
-    // Animated styles for 3D effect
     const animatedStyle = {
       transform: [
         { scale: animatedValue[index] },
-        { translateY: animatedValue[index].interpolate({
+        {
+          translateY: animatedValue[index].interpolate({
             inputRange: [0, 1],
             outputRange: [50, 0],
-          }) },
+          }),
+        },
       ],
       opacity: animatedValue[index].interpolate({
         inputRange: [0, 1],
@@ -39,27 +65,25 @@ const HomeScreen = () => {
     );
   };
 
-  // Animated value for 3D effect
-  const animatedValue = menuItems.map(() => new Animated.Value(0));
-
-  // Function to animate items on component mount
-  React.useEffect(() => {
-    const animations = menuItems.map((item, index) => {
-      return Animated.timing(animatedValue[index], {
-        toValue: 1,
-        duration: 500,
-        delay: index * 100,
-        easing: Easing.out(Easing.exp),
-        useNativeDriver: true,
-      });
-    });
-
-    Animated.stagger(100, animations).start();
-  }, []);
-
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.title}></Text> */}
+      <View style={styles.dropdownContainer}>
+        <SearchableDropdown
+          onTextChange={(text) => console.log(text)}
+          onItemSelect={(item) => setLocation(item)}
+          containerStyle={styles.dropdown}
+          textInputStyle={styles.dropdownTextInput}
+          itemStyle={styles.dropdownItem}
+          itemTextStyle={styles.dropdownItemText}
+          itemsContainerStyle={styles.dropdownItemsContainer}
+          items={locations}
+          defaultIndex={0}
+          placeholder="Select a location"
+          resetValue={false}
+          underlineColorAndroid="transparent"
+        />
+      </View>
+
       <FlatList
         data={menuItems}
         renderItem={renderItem}
@@ -74,18 +98,37 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: '#ffffff'2C3E50,
     backgroundColor: '#2C3E50',
     paddingHorizontal: 20,
     paddingTop: 50,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+  dropdownContainer: {
     marginBottom: 20,
-    color: 'white',
-    textAlign: 'center',
-    textTransform: 'uppercase',
+  },
+  dropdown: {
+    width: '100%',
+  },
+  dropdownTextInput: {
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    backgroundColor: '#fff',
+    color: '#333',
+  },
+  dropdownItem: {
+    padding: 10,
+    marginTop: 2,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    backgroundColor: '#fff',
+  },
+  dropdownItemText: {
+    color: '#333',
+  },
+  dropdownItemsContainer: {
+    maxHeight: 140,
   },
   flatListContainer: {
     paddingTop: 20,
@@ -110,7 +153,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
