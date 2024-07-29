@@ -3,13 +3,14 @@ import { useRouter } from "expo-router";
 import { View, TextInput, Image, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Pressable, Text, StatusBar, ActivityIndicator, TouchableOpacity } from 'react-native';
 //import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { loginApi } from '../services/apis';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const logo = require('../assets/digital_check_list/images/apollo-logo.png');
 
 const LoginScreen = () => {
-  const [username, setUsername] = useState('1245701');
-  const [password, setPassword] = useState('Imcl@12345678');
-  const [location, setLocation] = useState('10701');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [usernameError, setUsernameError] = useState('');
@@ -21,12 +22,14 @@ const LoginScreen = () => {
     if (!validateForm()) return;
 
     setLoading(true);
-
+    const locationid = "10701";
     try {
-      const response = await makeApiCall();
+      const response = await loginApi({ username, password, locationid });
       console.log(typeof response);
+
       const tokenNo = response.token;
       if (tokenNo.length > 10) {
+        await AsyncStorage.setItem("user_info", JSON.stringify(response));
         router.replace('applist');
       }
       // console.log(tokenNo);
@@ -61,32 +64,6 @@ const LoginScreen = () => {
     return isValid;
   };
 
-  const makeApiCall = async () => {
-    try {
-      const raw = JSON.stringify({
-        username: username,
-        password: password,
-        locationid: location
-      });
-
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: raw,
-      };
-
-      const response = await fetch("http://10.10.9.89:202/api/Users/Login", requestOptions);
-      const data = await response.json();
-      return data;
-    } catch (e) {
-      console.log("error", e)
-      return {
-
-      }
-    }
-  };
 
   const handleError = (error) => {
     setError(error);
