@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useRouter } from "expo-router";
-import { View, TextInput, Image, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Pressable, Text, StatusBar, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, TextInput, Image, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Pressable, Text, StatusBar, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 //import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { loginApi } from '../services/apis';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const logo = require('../assets/digital_check_list/images/apollo-logo.png');
+//comment
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
@@ -25,6 +26,10 @@ const LoginScreen = () => {
     const locationid = "10701";
     try {
       const response = await loginApi({ username, password, locationid });
+      if(response==="API returned Undefined"){
+        Alert.alert('Error 404','API returned Undefined');
+        return;
+      }
       console.log(typeof response);
 
       const tokenNo = response.token;
@@ -148,7 +153,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 150,
     height: 150,
-    marginBottom: 30,
+    marginBottom: 
   },
   input: {
     height: 60,
