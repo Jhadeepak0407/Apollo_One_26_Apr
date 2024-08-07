@@ -7,6 +7,7 @@ import { loginApi } from '../services/apis';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const logo = require('../assets/digital_check_list/images/apollo-logo.png');
+//comment
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
