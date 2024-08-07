@@ -1,30 +1,58 @@
+import axios from "axios";
 
 export const loginApi = async ({ username, password, locationid }) => {
-    try {
-        const raw = JSON.stringify({
-            username,
-            password,
-            locationid
-        });
+  try {
+    const payload = {
+      username,
+      password,
+      locationid,
+    };
 
-        const requestOptions = {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: raw,
-        };
+    const response = await axios.post(
+      "http://10.10.9.89:202/api/Users/Login",
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 3000,
+      }
+    );
 
-        const response = await fetch("http://10.10.9.89:202/api/Users/Login", requestOptions);
-        if(data===undefined){
-            return "API returned Undefined";
-        }
-        const data = await response.json();
-        return data;
-    } catch (e) {
-        console.log("error", e)
-        return {
-
-        }
+    if (response.status >= 200 && response.status < 300) {
+      return {
+        error: "",
+        status: response.status,
+        data: response.data,
+      };
+    } else {
+      return {
+        error: `Request failed with status ${response.status}`,
+        status: response.status,
+        data: {},
+      };
     }
+  } catch (error) {
+    if (error.response) {
+      return {
+        error: error.response.data.message || "An error occurred",
+        status: error.response.status,
+      };
+    } else if (error.request) {
+      return {
+        error: "No response received from the server",
+        status: 503,
+      };
+    } else if (error.code === "ECONNABORTED") {
+      return {
+        error: "Request timeout",
+        status: 408,
+      };
+    } else {
+      return {
+        error: error.message,
+        status: 500,
+      };
+    }
+  }
 };
