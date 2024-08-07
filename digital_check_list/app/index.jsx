@@ -11,7 +11,7 @@ export default function App() {
 
                 let response = await AsyncStorage.getItem('user_info');
                 response = JSON.parse(response);
-                const tokenNo = response.token;
+                const tokenNo = response?.token || "";
                 if (tokenNo.length > 10) {
                     await AsyncStorage.setItem("user_info", JSON.stringify(response));
                     router.replace('applist');
