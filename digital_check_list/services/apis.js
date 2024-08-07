@@ -16,6 +16,9 @@ export const loginApi = async ({ username, password, locationid }) => {
         };
 
         const response = await fetch("http://10.10.9.89:202/api/Users/Login", requestOptions);
+        if(data===undefined){
+            return "API returned Undefined";
+        }
         const data = await response.json();
         return data;
     } catch (e) {
