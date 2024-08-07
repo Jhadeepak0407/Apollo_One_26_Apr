@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Animated, Easing, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
-import SearchableDropdown from 'react-native-searchable-dropdown';
 import axios from 'axios';
+import { Dropdown } from 'react-native-element-dropdown';
+import { useNavigation } from '@react-navigation/native';
 
 const menuItems = [
   { name: 'Digital CheckList', icon: 'checklist', color: '#4CAF50' },
@@ -18,16 +19,18 @@ const HomeScreen = () => {
   const [locations, setLocations] = useState([]);
   const [location, setLocation] = useState(null);
   const [animatedValues, setAnimatedValues] = useState(menuItems.map(() => new Animated.Value(0)));
+  const [modalVisible, setModalVisible] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
     axios.get('http://10.10.9.89:202/api/Users/GetAllLocationList')
       .then(response => {
         const fetchedLocations = response.data.map(loc => ({
-          id: loc.location_Id,
-          name: loc.location_Display_Name
+          value: loc.location_Id,
+          label: loc.location_Display_Name
         }));
         setLocations(fetchedLocations);
-        setLocation(fetchedLocations[0]);
+        setLocation(fetchedLocations[0]?.value);
       })
       .catch(error => {
         console.error('Error fetching location data:', error);
@@ -73,22 +76,36 @@ const HomeScreen = () => {
     );
   };
 
+  const handleLogout = () => {
+    setModalVisible(false);
+    // Add your logout logic here, e.g., clearing async storage, navigating to login page
+    navigation.navigate('login'); // assuming 'Login' is the name of your login screen
+  };
+
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.iconButton}>
+          <MaterialIcons name="account-circle" size={28} color="white" />
+        </TouchableOpacity>
+      </View>
       <View style={styles.dropdownContainer}>
-        <SearchableDropdown
-          onTextChange={(text) => console.log(text)}
-          onItemSelect={(item) => setLocation(item)}
-          containerStyle={styles.dropdown}
-          textInputStyle={styles.dropdownTextInput}
-          itemStyle={styles.dropdownItem}
-          itemTextStyle={styles.dropdownItemText}
-          itemsContainerStyle={styles.dropdownItemsContainer}
-          items={locations}
-          defaultIndex={0}
+        <Dropdown
+          data={locations}
+          labelField="label"
+          valueField="value"
+          value={location}
+          search
+          searchPlaceholder="Search..."
+          onChange={item => {
+            setLocation(item.value);
+          }}
           placeholder="Select a location"
-          resetValue={false}
-          underlineColorAndroid="transparent"
+          style={styles.dropdown}
+          containerStyle={styles.dropdownContainerStyle}
+          selectedTextStyle={styles.dropdownSelectedText}
+          placeholderStyle={styles.dropdownPlaceholder}
+          inputSearchStyle={styles.dropdownInputSearch}
         />
       </View>
 
@@ -99,6 +116,24 @@ const HomeScreen = () => {
         numColumns={2}
         contentContainerStyle={styles.flatListContainer}
       />
+
+      <Modal
+        transparent={true}
+        visible={modalVisible}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+              <Text style={styles.logoutText}>Logout</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -110,33 +145,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 20,
+  },
+  iconButton: {
+    marginLeft: 15,
+  },
   dropdownContainer: {
     marginBottom: 20,
   },
   dropdown: {
     width: '100%',
-  },
-  dropdownTextInput: {
-    padding: 12,
+    height: 50,
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
-    backgroundColor: '#fff',
-    color: '#333',
-  },
-  dropdownItem: {
-    padding: 10,
-    marginTop: 2,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
+    paddingHorizontal: 10,
     backgroundColor: '#fff',
   },
-  dropdownItemText: {
-    color: '#333',
-  },
-  dropdownItemsContainer: {
+  dropdownContainerStyle: {
     maxHeight: 140,
+  },
+  dropdownSelectedText: {
+    color: '#333',
+  },
+  dropdownPlaceholder: {
+    color: '#999',
+  },
+  dropdownInputSearch: {
+    backgroundColor: '#fff',
+    color: '#333',
   },
   flatListContainer: {
     paddingTop: 20,
@@ -172,6 +212,40 @@ const styles = StyleSheet.create({
     color: '#333333',
     paddingHorizontal: 10,
     marginBottom: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: 250,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  logoutButton: {
+    backgroundColor: '#FF3B30',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  logoutText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: '#CCCCCC',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  cancelText: {
+    color: 'black',
+    fontSize: 16,
   },
 });
 
