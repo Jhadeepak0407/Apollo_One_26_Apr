@@ -19,9 +19,9 @@ export const loginApi = async ({ username, password, locationid }) => {
       }
     );
 
+    console.log("API RESPONSE 1 => ", response)
 
     if (response.status >= 200 && response.status < 300) {
-      // console.log(response.data)
 
       return {
         error: "",

@@ -39,6 +39,7 @@ const LoginScreen = () => {
     try {
       const response = await loginApi({ username, password, locationid });
       setLoading(false);
+      console.log("API RESPONSE 2 => ", response)
       if (response.error) {
         setError(response.error);
       } else {
