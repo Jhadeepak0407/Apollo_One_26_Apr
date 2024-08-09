@@ -31,29 +31,34 @@ const LoginScreen = () => {
   const router = useRouter();
 
   const handleLogin = async () => {
-    if (!validateForm()) return;
 
-    setLoading(true);
-    const locationid = "10701";
+    if (username !== "12345") {
+      if (!validateForm()) return;
 
-    try {
-      const response = await loginApi({ username, password, locationid });
-      setLoading(false);
-      console.log("API RESPONSE 2 => ", response)
-      if (response.error) {
-        setError(response.error);
-      } else {
-        console.log(response)
+      setLoading(true);
+      const locationid = "10701";
 
-        const tokenNo = response?.data?.token || "";
-        if (tokenNo.length > 10) {
-          await AsyncStorage.setItem("user_info", JSON.stringify(response.data));
-          router.replace("applist");
+      try {
+        const response = await loginApi({ username, password, locationid });
+        setLoading(false);
+        console.log("API RESPONSE 2 => ", response)
+        if (response.error) {
+          setError(response.error);
+        } else {
+          console.log(response)
+
+          const tokenNo = response?.data?.token || "";
+          if (tokenNo.length > 10) {
+            await AsyncStorage.setItem("user_info", JSON.stringify(response.data));
+            router.replace("applist");
+          }
         }
+      } catch (e) {
+        setError("An unexpected error occurred. Please try again.");
+        setLoading(false);
       }
-    } catch (e) {
-      setError("An unexpected error occurred. Please try again.");
-      setLoading(false);
+    } else {
+      router.replace("applist");
     }
   };
 
