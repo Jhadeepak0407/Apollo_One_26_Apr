@@ -39,13 +39,14 @@ const LoginScreen = () => {
     try {
       const response = await loginApi({ username, password, locationid });
       setLoading(false);
-
       if (response.error) {
         setError(response.error);
       } else {
-        const tokenNo = response?.token || "";
+        console.log(response)
+
+        const tokenNo = response?.data?.token || "";
         if (tokenNo.length > 10) {
-          await AsyncStorage.setItem("user_info", JSON.stringify(response));
+          await AsyncStorage.setItem("user_info", JSON.stringify(response.data));
           router.replace("applist");
         }
       }
