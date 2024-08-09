@@ -12,7 +12,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Dropdown } from "react-native-element-dropdown";
-// import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 
 const menuItems = [
   { name: "Digital CheckList", icon: "checklist", color: "#4CAF50" },
@@ -28,7 +28,7 @@ const HomeScreen = () => {
   const [location, setLocation] = useState(null);
   const [animatedValues] = useState(menuItems.map(() => new Animated.Value(0)));
   const [modalVisible, setModalVisible] = useState(false);
-  // const navigation = useNavigation();
+  const navigation = useRouter();
 
   useEffect(() => {
     try {
@@ -90,7 +90,7 @@ const HomeScreen = () => {
 
   const handleLogout = () => {
     setModalVisible(false);
-    // navigation.navigate("login");
+    navigation.navigate("login");
   };
 
   return (
