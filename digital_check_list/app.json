@@ -28,7 +28,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",["expo-build-properties",{"android" :{"usesCleartextTraffic":true}}]
     ],
     "experiments": {
       "typedRoutes": true
@@ -38,7 +38,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "aa3f3b49-983c-496a-8737-c0ab7a6aee6c"
+        "projectId": "ea2cc15a-c235-4d12-b56c-6afbee88e127"
       }
     }
   }
