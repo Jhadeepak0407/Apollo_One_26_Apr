@@ -8,7 +8,7 @@ import { Pressable } from 'react-native';
 
 const fetchDepartments = async (locationid) => {
     try {
-        const response = await fetch(`http://10.10.9.89:202/api/Users/DepartmentMasterListByLocation?locationid=${locationid}`);
+        const response = await fetch(`http://10.10.9.89:203/api/Users/DepartmentMasterListByLocation?locationid=${locationid}`);
         const data = await response.json();
         return data;
         // console.log('Fetched API Departments:', data);
@@ -20,7 +20,7 @@ const fetchDepartments = async (locationid) => {
 
 const fetchCheckLists = async (locationid, departmentId) => {
     try {
-        const response = await fetch(`http://10.10.9.89:202/api/Users/CheckListMasterListByDepartment?locationid=${locationid}&departmentid=${departmentId}`);
+        const response = await fetch(`http://10.10.9.89:203/api/Users/CheckListMasterListByDepartment?locationid=${locationid}&departmentid=${departmentId}`);
         const data = await response.json();
         console.log('Fetched CheckLists:', data);
         return data;
