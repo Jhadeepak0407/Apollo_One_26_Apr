@@ -1,40 +1,52 @@
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Animated, Easing, Modal } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Dropdown } from 'react-native-element-dropdown';
-import { useNavigation } from '@react-navigation/native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  Animated,
+  Easing,
+  Modal,
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Dropdown } from "react-native-element-dropdown";
+import { useRouter } from "expo-router";
 
 const menuItems = [
-  { name: 'Digital CheckList', icon: 'checklist', color: '#4CAF50' },
-  { name: 'OT Booking', icon: 'event', color: '#F44336' },
-  { name: 'Digital Pass', icon: 'trending-up', color: '#E91E63' },
-  { name: 'Doctor HandsOff', icon: 'person', color: '#FF9800' },
-  { name: 'Credential & Privilege', icon: 'school', color: '#2196F3' },
-  { name: 'Discharge Tracker', icon: 'store', color: '#8BC34A' },
-  // Add more menu items as needed
+  { name: "Digital CheckList", icon: "checklist", color: "#4CAF50" },
+  { name: "OT Booking", icon: "event", color: "#F44336" },
+  { name: "Digital Pass", icon: "trending-up", color: "#E91E63" },
+  { name: "Doctor HandsOff", icon: "person", color: "#FF9800" },
+  { name: "Credential & Privilege", icon: "school", color: "#2196F3" },
+  { name: "Discharge Tracker", icon: "store", color: "#8BC34A" },
 ];
 
 const HomeScreen = () => {
   const [locations, setLocations] = useState([]);
   const [location, setLocation] = useState(null);
-  const [animatedValues, setAnimatedValues] = useState(menuItems.map(() => new Animated.Value(0)));
+  const [animatedValues] = useState(menuItems.map(() => new Animated.Value(0)));
   const [modalVisible, setModalVisible] = useState(false);
-  const navigation = useNavigation();
+  const navigation = useRouter();
 
   useEffect(() => {
-    axios.get('http://10.10.9.89:202/api/Users/GetAllLocationList')
-      .then(response => {
-        const fetchedLocations = response.data.map(loc => ({
-          value: loc.location_Id,
-          label: loc.location_Display_Name
-        }));
-        setLocations(fetchedLocations);
-        setLocation(fetchedLocations[0]?.value);
-      })
-      .catch(error => {
-        console.error('Error fetching location data:', error);
-      });
+    try {
+      axios
+        .get("http://10.10.9.89:202/api/Users/GetAllLocationList")
+        .then((response) => {
+          console.log("APPLIST API => ", response)
+          const fetchedLocations = response.data.map((loc) => ({
+            value: loc.location_Id,
+            label: loc.location_Display_Name,
+          }));
+          setLocations(fetchedLocations);
+          setLocation(fetchedLocations[0]?.value);
+        });
+    } catch (error) {
+
+      console.log("ERROR IN CALLING API at applist page", error);
+    }
 
     const animations = animatedValues.map((animatedValue, index) => {
       return Animated.timing(animatedValue, {
@@ -68,7 +80,9 @@ const HomeScreen = () => {
 
     return (
       <Animated.View style={[styles.menuItem, animatedStyle]}>
-        <TouchableOpacity style={[styles.menuButton, { backgroundColor: item.color }]}>
+        <TouchableOpacity
+          style={[styles.menuButton, { backgroundColor: item.color }]}
+        >
           <MaterialIcons name={item.icon} size={40} color="white" />
         </TouchableOpacity>
         <Text style={styles.menuText}>{item.name}</Text>
@@ -78,14 +92,16 @@ const HomeScreen = () => {
 
   const handleLogout = () => {
     setModalVisible(false);
-    // Add your logout logic here, e.g., clearing async storage, navigating to login page
-    navigation.navigate('login'); // assuming 'Login' is the name of your login screen
+    navigation.navigate("login");
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.iconButton}>
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          style={styles.iconButton}
+        >
           <MaterialIcons name="account-circle" size={28} color="white" />
         </TouchableOpacity>
       </View>
@@ -97,7 +113,7 @@ const HomeScreen = () => {
           value={location}
           search
           searchPlaceholder="Search..."
-          onChange={item => {
+          onChange={(item) => {
             setLocation(item.value);
           }}
           placeholder="Select a location"
@@ -125,10 +141,16 @@ const HomeScreen = () => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={styles.logoutButton}
+            >
               <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={styles.cancelButton}
+            >
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -141,13 +163,13 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2C3E50',
+    backgroundColor: "#2C3E50",
     paddingHorizontal: 20,
     paddingTop: 50,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     marginBottom: 20,
   },
   iconButton: {
@@ -157,26 +179,26 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   dropdown: {
-    width: '100%',
+    width: "100%",
     height: 50,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 5,
     paddingHorizontal: 10,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   dropdownContainerStyle: {
     maxHeight: 140,
   },
   dropdownSelectedText: {
-    color: '#333',
+    color: "#333",
   },
   dropdownPlaceholder: {
-    color: '#999',
+    color: "#999",
   },
   dropdownInputSearch: {
-    backgroundColor: '#fff',
-    color: '#333',
+    backgroundColor: "#fff",
+    color: "#333",
   },
   flatListContainer: {
     paddingTop: 20,
@@ -186,11 +208,11 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 10,
     borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000000',
+    overflow: "hidden",
+    backgroundColor: "#ffffff",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -201,50 +223,50 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 10,
   },
   menuText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333333',
+    fontWeight: "bold",
+    textAlign: "center",
+    color: "#333333",
     paddingHorizontal: 10,
     marginBottom: 10,
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
     width: 250,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 10,
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   logoutButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: "#FF3B30",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
     marginBottom: 10,
   },
   logoutText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
   },
   cancelButton: {
-    backgroundColor: '#CCCCCC',
+    backgroundColor: "#CCCCCC",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
   },
   cancelText: {
-    color: 'black',
+    color: "black",
     fontSize: 16,
   },
 });
