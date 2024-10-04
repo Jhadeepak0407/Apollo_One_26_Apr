@@ -7,7 +7,9 @@ export default function Layout() {
   return (
     <SafeAreaProvider>
       <Provider store={store}>
-        <Stack />
+        <Stack screenOptions={{
+          headerShown: false
+        }} />
       </Provider>
     </SafeAreaProvider>
   );
