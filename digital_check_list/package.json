@@ -3,7 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start --port 9901",
+    "start": "expo start --port 9902",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
@@ -30,6 +30,7 @@
     "expo-splash-screen": "~0.27.5",
     "expo-status-bar": "~1.12.1",
     "expo-system-ui": "~3.0.7",
+    "expo-updates": "^0.25.25",
     "expo-web-browser": "~13.0.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",

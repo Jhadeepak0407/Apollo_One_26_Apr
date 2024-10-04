@@ -13,11 +13,12 @@ export default function App() {
         const tokenNo = response?.token || "";
         if (tokenNo.length > 10) {
           await AsyncStorage.setItem("user_info", JSON.stringify(response));
-          router.replace("applist");
+          router.replace("login");
         } else {
           router.replace("login");
         }
-      } catch (error) {
+      } catch (error)
+       { 
         router.replace("login");
       }
     })();
