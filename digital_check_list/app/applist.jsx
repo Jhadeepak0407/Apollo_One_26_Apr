@@ -35,6 +35,7 @@ const HomeScreen = () => {
       axios
         .get("http://10.10.9.89:202/api/Users/GetAllLocationList")
         .then((response) => {
+          console.log("APPLIST API => ", response)
           const fetchedLocations = response.data.map((loc) => ({
             value: loc.location_Id,
             label: loc.location_Display_Name,
@@ -43,6 +44,7 @@ const HomeScreen = () => {
           setLocation(fetchedLocations[0]?.value);
         });
     } catch (error) {
+
       console.log("ERROR IN CALLING API at applist page", error);
     }
 
