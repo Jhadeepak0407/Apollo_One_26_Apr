@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+ import React, { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import {
   View,
@@ -15,62 +15,49 @@ import {
   TouchableOpacity,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { loginApi } from "../services/apis";
+import { useDispatch, useSelector } from "react-redux";
+import {LoginRequest} from "../redux/actions/loginActions";
 
 const logo = require("../assets/digital_check_list/images/apollo-logo.png");
 
 const LoginScreen = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [isPasswordVisible, setPasswordVisible] = useState(false);
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [isPasswordVisible, setPasswordVisible] = useState(false);
   const router = useRouter();
+  
+  const dispatch = useDispatch();
+  const { loading, error,user } = useSelector((state) => state.login);
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
+    if (!validateForm()) return;
 
-    if (username !== "12345") {
-      if (!validateForm()) return;
-
-      setLoading(true);
-      const locationid = "10701";
-
-      try {
-        if (username === "apolloadmin" && password === "apolloadmin") {
-          router.replace("applist");
-          return;
-        }
-
-        const response = await loginApi({ username, password, locationid });
-        setLoading(false);
-        console.log("API RESPONSE 2 => ", response)
-        if (response.error) {
-          setError(response.error);
-        } else {
-          console.log(response)
-
-          const tokenNo = response?.data?.token || "";
-          if (tokenNo.length > 10) {
-            await AsyncStorage.setItem("user_info", JSON.stringify(response.data));
-            router.replace("applist");
-          }
-        }
-
-
-
-      } catch (e) {
-        setError("An unexpected error occurred. Please try again.");
-        setLoading(false);
-      }
-    } else {
-      router.replace("applist");
+    if(username==="apolloadmin" && password==="apolloadmin"){
+      router.replace("/applist");
+    
     }
+    const locationid = "10701";
+
+    dispatch(LoginRequest({ username, password, locationid }));
+    //dispatch({
+      //type: "LOGIN_REQUEST",
+      //payload: { username, password, locationid },
+   // });
   };
 
-  const validateForm = () => {
+
+useEffect(()=>{
+
+console.log("gdhgf => ",user);
+if(user.token){
+  router.replace("/applist")
+
+}
+},[user.token])
+ 
+const validateForm = () => {
     let isValid = true;
 
     if (!username) {
@@ -113,15 +100,12 @@ const LoginScreen = () => {
           autoCapitalize="none"
           keyboardType="default"
           returnKeyType="next"
-          onSubmitEditing={() => this.passwordInput.focus()}
-          blurOnSubmit={false}
         />
         {usernameError ? (
           <Text style={styles.errorText}>{usernameError}</Text>
         ) : null}
         <View style={styles.passwordContainer}>
           <TextInput
-            ref={(input) => (this.passwordInput = input)}
             style={styles.input}
             placeholder="MedMantra Password"
             secureTextEntry={!isPasswordVisible}

@@ -78,6 +78,30 @@ const HomeScreen = () => {
       }),
     };
 
+    const navigateToPage = () => {
+      switch (item.name) {
+        case "Digital CheckList":
+          navigation.push('CounterB');
+          break;
+        case "OT Booking":
+          navigation.push('otBooking');
+          break;
+        case "Digital Pass":
+          navigation.push('digitalPass');
+          break;
+        case "Doctor HandsOff":
+          navigation.push('doctorHandOff');
+          break;
+        case "Credential & Privilege":
+          navigation.push('credentialPrivilege');
+          break;
+        case "Discharge Tracker":
+          navigation.push('dischargeTracker');
+          break;
+        default:
+          console.log("No page found for this item");
+      }
+    };
     return (
       <Animated.View style={[styles.menuItem, animatedStyle]}>
         <TouchableOpacity
