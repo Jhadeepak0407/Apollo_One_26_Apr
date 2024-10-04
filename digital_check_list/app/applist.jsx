@@ -15,7 +15,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import { useRouter } from "expo-router";
 
 const menuItems = [
-  { name: "Digital CheckList", icon: "checklist", color: "#4CAF50" },
+  { name: "Digital CheckList", icon: "checklist", color: "#4CAF50", route: "Digital_Checklist_App/TriggeredChecklist" },
   { name: "OT Booking", icon: "event", color: "#F44336" },
   { name: "Digital Pass", icon: "trending-up", color: "#E91E63" },
   { name: "Doctor HandsOff", icon: "person", color: "#FF9800" },
@@ -33,7 +33,7 @@ const HomeScreen = () => {
   useEffect(() => {
     try {
       axios
-        .get("http://10.10.9.89:202/api/Users/GetAllLocationList")
+        .get("http://10.10.9.89:203/api/Users/GetAllLocationList")
         .then((response) => {
           console.log("APPLIST API => ", response)
           const fetchedLocations = response.data.map((loc) => ({
@@ -82,6 +82,7 @@ const HomeScreen = () => {
       <Animated.View style={[styles.menuItem, animatedStyle]}>
         <TouchableOpacity
           style={[styles.menuButton, { backgroundColor: item.color }]}
+          onPress={() => navigation.navigate(item.route)} 
         >
           <MaterialIcons name={item.icon} size={40} color="white" />
         </TouchableOpacity>
