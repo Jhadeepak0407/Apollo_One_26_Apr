@@ -1,356 +1,529 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { View, Text,Modal, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView, Pressable, Platform, Dimensions, Alert, FlatList } from 'react-native';
+import DropDownPicker from 'react-native-dropdown-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Pressable } from 'react-native';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+
+import { useNavigation  } from '@react-navigation/native';
 
 
 
-const fetchDepartments = async (locationid) => {
-    try {
-        const response = await fetch(`http://10.10.9.89:203/api/Users/DepartmentMasterListByLocation?locationid=${locationid}`);
-        const data = await response.json();
-        return data;
-        // console.log('Fetched API Departments:', data);
-    } catch (error) {
-        console.error('Error fetching departments:', error);
-        return [];
-    }
+const { width } = Dimensions.get('window');
+
+
+
+const FilterModal = ({ visible, onClose, onApplyFilter }) => {
+  const [statusFilter, setStatusFilter] = useState('');
+  const applyFilter = () => {
+    onApplyFilter(statusFilter);
+    onClose();
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="slide">
+  <View style={styles.modalContainer}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>Filter Options</Text>
+
+      <Text style={styles.label}>Status</Text>
+      <View style={styles.listContainer}>
+        {['Completed', 'Pending', 'Drafted'].map((status) => (
+          <TouchableOpacity 
+            key={status} 
+            style={[
+              styles.listItem, 
+              statusFilter === status && styles.selectedItem
+            ]} 
+            onPress={() => setStatusFilter(status)}>
+            <Text style={styles.listItemText}>{status}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <View style={styles.modalButtons}>
+        <TouchableOpacity onPress={applyFilter} style={styles.modalButton}>
+          <FontAwesome name="check" size={20} color="green" />
+          <Text style={styles.buttonText}>Apply</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onClose} style={styles.modalButton}>
+          <FontAwesome name="times" size={20} color="red" />
+          <Text style={styles.buttonText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</Modal>
+
+  );
 };
 
-const fetchCheckLists = async (locationid, departmentId) => {
-    try {
-        const response = await fetch(`http://10.10.9.89:203/api/Users/CheckListMasterListByDepartment?locationid=${locationid}&departmentid=${departmentId}`);
-        const data = await response.json();
-        console.log('Fetched CheckLists:', data);
-        return data;
-    } catch (error) {
-        console.error('Error fetching checklists:', error);
-        return [];
-    }
+ 
+
+
+const fetchDepartments = async (locationId) => {
+  try {
+    const response = await fetch(`http://10.10.9.89:203/api/Users/DepartmentMasterListByLocation?locationid=${locationId}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching departments:', error);
+    return [];
+  }
+};
+
+
+const fetchCheckLists = async (locationId, departmentId) => {
+  try {
+    const response = await fetch(`http://10.10.9.89:203/api/Users/CheckListMasterListByDepartment?locationid=${locationId}&departmentid=${departmentId}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching checklists:', error);
+    return [];
+  }
+};
+
+
+const fetchMenuDetails = async (checklistId, fromDate, toDate) => {
+  try {
+    const formattedFromDate = formatDate(fromDate,'YYYY-MM-dd');
+    const formattedToDate = formatDate(toDate,'YYYY-MM-dd');
+
+    
+    const apiUrl = `http://10.10.9.89:203/api/Users/TaksListByCheckListID?checklistid=${checklistId}&from=${formattedFromDate}&to=${formattedToDate}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching menu details:', error);
+    return [];
+  }
 };
 
 const App = () => {
-    const [selectedDepartment, setSelectedDepartment] = useState('');
-    const [departments, setDepartments] = useState([]);
-    const [checkLists, setCheckLists] = useState([]);
-    const [selectedCheckList, setSelectedCheckList] = useState('');
-    const [fromDate, setFromDate] = useState(new Date());
-    const [toDate, setToDate] = useState(new Date());
-    const [ward, setWard] = useState('');
-    const [room, setRoom] = useState('');
-    const [status, setStatus] = useState('');
-    const [user, setUser] = useState('');
-    const [lastActionDate, setLastActionDate] = useState(new Date());
-    const [taskDate, setTaskDate] = useState(new Date());
+  const locationId = '10701'; 
+  const [menu, setMenu] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [departments, setDepartments] = useState([]);
+  const [openDeptDropdown, setOpenDeptDropdown] = useState(false);
+  const [checkLists, setCheckLists] = useState([]);
+  const [selectedCheckList, setSelectedCheckList] = useState(null);
+  const [openChecklistDropdown, setOpenChecklistDropdown] = useState(false);
+  const [fromDate, setFromDate] = useState(new Date());
+  const [toDate, setToDate] = useState(new Date());
+  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
+  const [showToDatePicker, setShowToDatePicker] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [filterStatus, setFilterStatus] = useState(null); 
+const [isFilterModalVisible, setIsFilterModalVisible] = useState(false); 
 
-    const [showFromDatePicker, setShowFromDatePicker] = useState(false);
-    const [showToDatePicker, setShowToDatePicker] = useState(false);
-    const [showLastActionDatePicker, setShowLastActionDatePicker] = useState(false);
-    const [showTaskDatePicker, setShowTaskDatePicker] = useState(false);
-    const [showMoreFilters, setShowMoreFilters] = useState(false);
+ 
+  const memoizedDepartments = useMemo(() => departments, [departments]);
+  const memoizedCheckLists = useMemo(() => checkLists, [checkLists]);
 
-    useEffect(() => {
-        fetchDepartments('10701').then(data => {
-            console.log("DATA => ", data)
-            if (Array.isArray(data)) {
-                setDepartments(data);
-            }
-        });
-    }, []);
+  const filteredMenu = useMemo(() => {
+    if (!filterStatus) return menu; 
+    return menu.filter((item) => item.status === filterStatus); 
+  }, [menu, filterStatus]);
+ 
+  useEffect(() => {
+    fetchDepartments(locationId).then((data) => {
+      if (Array.isArray(data)) {
+        setDepartments(data.map((dept) => ({ label: dept.departmentName, value: dept.departmentId })));
+      }
+    });
+  }, [locationId]);
 
-    useEffect(() => {
-        if (selectedDepartment) {
-            fetchCheckLists('10701', selectedDepartment).then(data => {
-                if (Array.isArray(data)) {
-                    setCheckLists(data);
-                } else {
-                    setCheckLists([]);
-                }
-            });
+  
+  useEffect(() => {
+    if (selectedDepartment) {
+      fetchCheckLists(locationId, selectedDepartment).then((data) => {
+        if (Array.isArray(data)) {
+          setCheckLists(data.map((list) => ({ label: list.checklist_name, value: list.checklist_id })));
+        } else {
+          setCheckLists([]);
         }
-    }, [selectedDepartment]);
+      });
+    }
+  }, [selectedDepartment, locationId]);
 
-    const handleSearch = () => {
-        // Handle search logic
-    };
-
-    const handleHideFilters = () => {
-        setShowMoreFilters(!showMoreFilters);
-    };
-
-    const handleClear = () => {
-        setSelectedDepartment('');
-        setSelectedCheckList('');
-        setFromDate(new Date());
-        setToDate(new Date());
-        setWard('');
-        setRoom('');
-        setStatus('');
-        setUser('');
-        setLastActionDate(new Date());
-        setTaskDate(new Date());
-    };
-
-    return (
-        <ScrollView style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.headerText}>Triggered Check List</Text>
-            </View>
-            <View style={styles.statusSummary}>
-                <Text style={styles.statusSummaryText}>Status Wise All Tickets Counter</Text>
-                <View style={styles.statusContainer}>
-                    <View style={styles.statusBox}>
-                        <Text style={{ color: 'red', fontWeight: 'bold' }}>Pending</Text>
-                        <Text style={styles.statusCount}>0</Text>
-                    </View>
-                    <View style={styles.statusBox}>
-                        <Text style={{ color: 'yellow', fontWeight: 'bold' }}>Drafted</Text>
-                        <Text style={styles.statusCount}>0</Text>
-                    </View>
-                    <View style={styles.statusBox}>
-                        <Text style={{ color: 'lightgreen', fontWeight: 'bold' }}>Completed</Text>
-                        <Text style={styles.statusCount}>0</Text>
-                    </View>
-                    <View style={styles.statusBox}>
-                        <Text style={{ color: 'orange', fontWeight: 'bold' }}>Lapsed</Text>
-                        <Text style={styles.statusCount}>0</Text>
-                    </View>
-                </View>
-            </View>
-
-            <Text style={styles.label}>Department</Text>
-            <Picker
-                selectedValue={selectedDepartment}
-                onValueChange={(itemValue) => setSelectedDepartment(itemValue)}
-                style={styles.picker}
-            >
-                <Picker.Item label="Please select a department" value="0" />
-                {departments?.map((dept, index) => {
-                    console.log('Fetched Department:', dept, index); // Log each department object
-                    return (
-                        <Picker.Item key={dept.departmentId} label={dept.departmentName} value={dept.departmentId} />
-                    );
-                })}
-
-            </Picker>
-
-
-
-            <Text style={styles.label}>Check List Name</Text>
-            <Picker
-                selectedValue={selectedCheckList}
-                onValueChange={(itemValue) => setSelectedCheckList(itemValue)}
-                style={styles.picker}
-                enabled={checkLists.length > 0}
-            >
-                <Picker.Item label="Please select a checklist" value="0" />
-                {checkLists.map(list => (
-                    <Picker.Item key={list.id} label={list.name} value={list.id} />
-                ))}
-            </Picker>
-
-            <Text style={styles.label}>From Date</Text>
-            <TouchableOpacity onPress={() => setShowFromDatePicker(true)} style={styles.datePickerButton}>
-                <Text>{fromDate.toDateString()}</Text>
-            </TouchableOpacity>
-            {showFromDatePicker && (
-                <DateTimePicker
-                    value={fromDate}
-                    mode="date"
-                    onChange={(event, selectedDate) => {
-                        const currentDate = selectedDate || fromDate;
-                        setShowFromDatePicker(false);
-                        setFromDate(currentDate);
-                    }}
-                />
-            )}
-
-            <Text style={styles.label}>To Date</Text>
-            <TouchableOpacity onPress={() => setShowToDatePicker(true)} style={styles.datePickerButton}>
-                <Text>{toDate.toDateString()}</Text>
-            </TouchableOpacity>
-            {showToDatePicker && (
-                <DateTimePicker
-                    value={toDate}
-                    mode="date"
-                    onChange={(event, selectedDate) => {
-                        const currentDate = selectedDate || toDate;
-                        setShowToDatePicker(false);
-                        setToDate(currentDate);
-                    }}
-                />
-            )}
-
-            <View style={styles.buttonContainer}>
-                <Pressable style={styles.searchButton} onPress={handleSearch}>
-                    <Text>Search</Text>
-                </Pressable>
-                <Pressable style={styles.button} onPress={handleClear}>
-                    <Text>Clear</Text>
-                </Pressable>
-                <Pressable style={styles.button} onPress={handleHideFilters}>
-                    <Text>{showMoreFilters ? "Hide Filters" : "Show More"}</Text>
-                </Pressable>
-            </View>
-
-            {showMoreFilters && (
-                <>
-                    <Text style={styles.label}>Ward</Text>
-                    <Picker
-                        selectedValue={ward}
-                        onValueChange={(itemValue) => setWard(itemValue)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label="Select Ward" value="0" />
-                        {/* Add ward options here */}
-                    </Picker>
-
-                    <Text style={styles.label}>Room</Text>
-                    <Picker
-                        selectedValue={room}
-                        onValueChange={(itemValue) => setRoom(itemValue)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label="Select Room" value="" />
-                        {/* Add room options here */}
-                    </Picker>
-
-                    <Text style={styles.label}>Status</Text>
-                    <Picker
-                        selectedValue={status}
-                        onValueChange={(itemValue) => setStatus(itemValue)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label="Select Status" value="" />
-                        {/* Add status options here */}
-                    </Picker>
-
-                    <Text style={styles.label}>User</Text>
-                    <Picker
-                        selectedValue={user}
-                        onValueChange={(itemValue) => setUser(itemValue)}
-                        style={styles.picker}
-                    >
-                        <Picker.Item label="Select User" value="" />
-                        {/* Add user options here */}
-                    </Picker>
-
-                    <Text style={styles.label}>Last Action Date</Text>
-                    <View style={styles.datePickerButton}>
-                        <TouchableOpacity onPress={() => setShowLastActionDatePicker(true)}>
-                            <Text style={styles.dateText}>{lastActionDate.toDateString()}</Text>
-                        </TouchableOpacity>
-                    </View>
-                    {showLastActionDatePicker && (
-                        <DateTimePicker
-                            value={lastActionDate}
-                            mode="date"
-                            onChange={(event, selectedDate) => {
-                                const currentDate = selectedDate || lastActionDate;
-                                setShowLastActionDatePicker(false);
-                                setLastActionDate(currentDate);
-                            }}
-                        />
-                    )}
-                </>
-            )}
-
-            <Text style={styles.label}>Task Date</Text>
-            <View style={styles.datePickerButton}>
-                <TouchableOpacity onPress={() => setShowTaskDatePicker(true)}>
-                    <Text style={styles.dateText}>{taskDate.toDateString()}</Text>
-                </TouchableOpacity>
-            </View>
-            {showTaskDatePicker && (
-                <DateTimePicker
-                    value={taskDate}
-                    mode="date"
-                    onChange={(event, selectedDate) => {
-                        const currentDate = selectedDate || taskDate;
-                        setShowTaskDatePicker(false);
-                        setTaskDate(currentDate);
-                    }}
-                />
-            )}
-        </ScrollView>
+  const handleSearch = async () => {
+    if (selectedCheckList && fromDate && toDate) {
+      const menuDetails = await fetchMenuDetails(selectedCheckList, fromDate, toDate);
+      if (menuDetails && menuDetails.length > 0) {
+        setMenu(menuDetails);
+        setIsMenuVisible(true); 
+      } else {
+        setMenu([]);
+        setIsMenuVisible(false); 
+      }
+    } else {
+      alert('Please select a checklist and valid date range.');
+    }
+  };
+  const handleClear = useCallback(() => {
+    Alert.alert(
+      'Clear Selection',
+      'Are you sure you want to clear the selections?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'OK',
+          onPress: () => {
+            
+            setSelectedDepartment(''); 
+            setSelectedCheckList(null); 
+            setFromDate(new Date());
+            setToDate(new Date());
+            setMenu([]); 
+            setIsMenuVisible(false); 
+          },
+        },
+      ],
+      { cancelable: true } 
     );
+  }, []);
+
+ 
+ 
+
+ 
+  const MenuItem = React.memo(({ item }) => {
+    const navigation = useNavigation(); // Initialize navigation
+
+    // Define the handlePress function for navigation
+    const handlePress = () => {
+      navigation.navigate('Digital_Checklist_App/checkListEdit', {
+        taskID: item.taskID,
+        ipnumber: item.ipnumber,
+        bedCode: item.bedCode,
+        ward: item.ward,
+        status: item.status,
+      });
+    };
+    return (
+  
+    <Pressable onPress={handlePress}
+      style={({ pressed }) => [styles.menuItem, { backgroundColor: pressed ? '#f0f0f0' : '#fff' }]}
+    >
+      <View style={styles.iconContainer}>
+  <View style={[styles.iconCircle, { backgroundColor: getStatusColor(item.status) }]}>
+    {/* Display the letter based on the status */}
+    <Text style={styles.iconText}>
+      {item.status === 'Completed' ? 'C' : item.status === 'Pending' ? 'P' : item.status === 'Drafted' ? 'D' : ''}
+    </Text>
+  </View>
+</View>
+
+      <View style={styles.textGroup}>
+        <View style={styles.textRow}>
+          <Text style={styles.menuItemText}>{item.taskID}</Text>
+          <Text style={styles.menuItemText}>{item.ipnumber}</Text>
+        </View>
+        <View style={styles.textRow}>
+          <Text style={styles.menuItemText}>{item.bedCode}/{item.ward}</Text>
+        </View>
+      </View>
+    </Pressable>
+    );
+  });
+
+  return (
+
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+    >
+  
+        <Text style={styles.label}>Department</Text>
+        <DropDownPicker
+          open={openDeptDropdown}
+          value={selectedDepartment}
+          items={memoizedDepartments}
+          setOpen={setOpenDeptDropdown}
+          setValue={setSelectedDepartment}
+          searchable={true}
+          placeholder="Select a department"
+          style={styles.dropdown}
+          dropDownContainerStyle={styles.dropdownContainer}
+          onOpen={() => setOpenChecklistDropdown(false)} 
+        />
+
+        <Text style={styles.label}>Check List Name</Text>
+        <DropDownPicker
+          open={openChecklistDropdown}
+          value={selectedCheckList}
+          items={memoizedCheckLists}
+          setOpen={setOpenChecklistDropdown}
+          setValue={setSelectedCheckList}
+          searchable={true}
+          placeholder="Select a checklist"
+          style={styles.dropdown}
+          dropDownContainerStyle={styles.dropdownContainer}
+          onOpen={() => setOpenDeptDropdown(false)} 
+        />
+    
+
+      <View style={styles.dateRow}>
+        <View style={styles.datePickerContainer}>
+          <Text style={styles.label}>From Date</Text>
+          <TouchableOpacity onPress={() => setShowFromDatePicker(true)} style={styles.datePickerButton}>
+            <Text>{formatDate(fromDate,'dd-MM-YYYY')}</Text>
+          </TouchableOpacity>
+          {showFromDatePicker && (
+            <DateTimePicker
+              value={fromDate}
+              mode="date"
+              onChange={(event, selectedDate) => {
+                setShowFromDatePicker(false);
+                setFromDate(selectedDate || fromDate);
+              }}
+            />
+          )}
+        </View>
+
+        <View style={styles.datePickerContainer}>
+          <Text style={styles.label}>To Date</Text>
+          <TouchableOpacity onPress={() => setShowToDatePicker(true)} style={styles.datePickerButton}>
+            <Text>{formatDate(toDate,'dd-MM-YYYY')}</Text>
+          </TouchableOpacity>
+          {showToDatePicker && (
+            <DateTimePicker
+              value={toDate}
+              mode="date"
+              onChange={(event, selectedDate) => {
+                setShowToDatePicker(false);
+                setToDate(selectedDate || toDate);
+              }}
+            />
+          )}
+        </View>
+      </View>
+
+      {isMenuVisible ? (
+        <FlatList
+          data={filteredMenu}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => <MenuItem item={item} />}
+          ListEmptyComponent={<Text style={styles.noDataText}>No data available</Text>}
+          nestedScrollEnabled
+          style={styles.menuList} 
+        />
+      ) : (
+        <View style={styles.placeholder}>
+          {/* <Text style={styles.placeholderText}>Please click search to view results.</Text> */}
+          <Text style={styles.placeholderText}></Text>
+        </View>
+      )}
+
+<View style={styles.buttonRow}>
+  <TouchableOpacity onPress={() => setIsFilterModalVisible(true)} style={styles.filterButton}>
+    <FontAwesome name="filter" size={24} color="#1591ea" />
+  </TouchableOpacity>
+  <View style={styles.rightButtons}>
+    <TouchableOpacity onPress={handleSearch} style={styles.button}>
+      <Text style={styles.buttonText}>Search</Text>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={handleClear} style={styles.button}>
+      <Text style={styles.buttonText}>Clear</Text>
+    </TouchableOpacity>
+  </View>
+</View>
+<FilterModal
+  visible={isFilterModalVisible}
+  onClose={() => setIsFilterModalVisible(false)}
+  onApplyFilter={(status) => {
+    setFilterStatus(status);
+    setIsFilterModalVisible(false);
+  }}
+/>
+
+    </KeyboardAvoidingView>
+  );
 };
 
-export default App;
+
+const formatDate = (date, format) => {
+  const day = String(date.getDate()).padStart(2, '0'); 
+  const month = String(date.getMonth() + 1).padStart(2, '0'); 
+  const year = date.getFullYear(); 
+
+
+  switch (format) {
+    case 'dd-MM-YYYY':
+      return `${day}-${month}-${year}`;
+    case 'YYYY-MM-dd':
+      return `${year}-${month}-${day}`;
+ 
+    default:
+      return `${day}-${month}-${year}`; 
+  }
+};
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Drafted':
+      return '#1aa3ff';
+    case 'Completed':
+      return '#0F0';
+    case 'Pending':
+      return '#FFA500';
+    default:
+      return '#CCC';
+  }
+};
 
 const styles = StyleSheet.create({
-    container: {
-        padding: 20,
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily:'Roboto',
+    marginBottom: 8,
+  },
+  dropdown: {
+    marginBottom: 16,
+    zIndex: 15, 
+  },
+  dropdownContainer: {
+    maxHeight: 500,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  datePickerContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  datePickerButton: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 12,
+    borderRadius: 4,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+    paddingHorizontal: 16,
+  },
+  
+  filterButton: {
+    padding: 1,
+    backgroundColor: 'white',
+    borderRadius: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4, 
+  },
+  
+  rightButtons: {
+    flexDirection: 'row',
+    flexGrow: 1,
+    justifyContent: 'space-between', 
+  },
+  
+  button: {
+    flexGrow: 1,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
+    backgroundColor: '#1591ea',
+    borderRadius: 8,
+    alignItems: 'center',
+    marginLeft: 8, 
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontFamily:'Roboto'
+  },
+  menuContainer: {
+    marginVertical: 16,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  
+    iconContainer: {
+      marginRight: 10,
     },
-    header: {
-        alignItems: 'center',
+    iconCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 10,
+      justifyContent: 'center', 
+      alignItems: 'center', 
     },
-    headerText: {
-        color: 'black',
-        fontWeight: 'bold',
+    iconText: {
+      color: 'white', 
+      fontSize: 14, 
+      fontWeight: 'bold', 
     },
-    statusSummary: {
-        backgroundColor: "#6495ed",
-        borderRadius: 15,
-        marginVertical: 20,
-        padding: 10,
-    },
-    statusSummaryText: {
-        fontWeight: "bold",
-        alignSelf: "center",
-        fontSize: 16,
-        color: "white",
-    },
-    statusContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginVertical: 20,
-    },
-    statusBox: {
-        alignItems: 'center',
-    },
-    statusCount: {
-        fontSize: 24,
-        color: "white",
-    },
-    label: {
-        marginTop: 10,
-        fontWeight: 'bold',
-        color: "black",
-    },
-    picker: {
-        height: 50,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        marginBottom: 10,
-    },
-    datePickerButton: {
-        padding: 10,
-        backgroundColor: '#eee',
-        borderRadius: 5,
-        marginBottom: 10,
-    },
-    dateText: {
-        fontWeight: "bold",
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginVertical: 15,
-        backgroundColor: 'lightblue',
-        padding: 5,
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-    searchButton: {
-        backgroundColor: "#4CAF50",
-        padding: 10,
-        borderRadius: 5,
-    },
-    button: {
-        backgroundColor: "#f0f0f0",
-        padding: 10,
-        borderRadius: 5,
-    },
+
+  
+  textGroup: {
+    flex: 1,
+  },
+  textRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  menuItemText: {
+    fontSize: 14,
+  },
+  noDataText: {
+    textAlign: 'center',
+    marginVertical: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  listContainer: {
+    marginTop: 10,
+  },
+  listItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+    marginBottom: 5,
+  },
+  selectedItem: {
+    backgroundColor: '#add8e6', 
+  },
+  listItemText: {
+    fontSize: 16,
+  }
 });
+
+export default App;
