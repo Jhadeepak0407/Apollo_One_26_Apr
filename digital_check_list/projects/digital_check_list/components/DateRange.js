@@ -47,7 +47,7 @@ const CustomDateRange = () => {
                 selectedDateContainerStyle={styles.selectedDateContainerStyle}
                 selectedDateStyle={styles.selectedDateStyle}
               />
-              <View style={styles.buttonContainer}>
+              {/* <View style={styles.buttonContainer}>
                 <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
                   <Icon name="checkmark" size={20} color="white" />
                   <Text style={styles.buttonText}>Confirm</Text>
@@ -56,7 +56,7 @@ const CustomDateRange = () => {
                   <Icon name="close" size={20} color="white" />
                   <Text style={styles.buttonText}>Clear</Text>
                 </TouchableOpacity>
-              </View>
+              </View> */}
               <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
                 <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "black",
+    backgroundColor: "#A490F6",
   },
   selectedDateStyle: {
     fontWeight: "bold",
