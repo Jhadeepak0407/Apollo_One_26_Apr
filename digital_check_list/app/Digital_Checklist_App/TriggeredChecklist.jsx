@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text,Modal, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView, Pressable, Platform, Dimensions, Alert, FlatList } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
+// import DropDownPicker from 'react-native-dropdown-picker';
+// import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import CustomDatePicker from '../../projects/digital_check_list/components/DateRange';
+import CustomDatePicker1 from '../../projects/digital_check_list/components/daterange1';
+
 
 import { useNavigation  } from '@react-navigation/native';
 
@@ -196,9 +199,7 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
       navigation.navigate('Digital_Checklist_App/checkListEdit', {
         taskID: item.taskID,
         ipnumber: item.ipnumber,
-        bedCode: item.bedCode,
-        ward: item.ward,
-        status: item.status,
+      
       });
     };
     return (
@@ -236,69 +237,43 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
       keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
     >
   
-        <Text style={styles.label}>Department</Text>
-        <DropDownPicker
-          open={openDeptDropdown}
-          value={selectedDepartment}
-          items={memoizedDepartments}
-          setOpen={setOpenDeptDropdown}
-          setValue={setSelectedDepartment}
-          searchable={true}
-          placeholder="Select a department"
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          onOpen={() => setOpenChecklistDropdown(false)} 
-        />
+  <Text style={styles.label}>Department</Text>
+      {/* <DropDownPicker
+        open={openDeptDropdown}
+        value={selectedDepartment}
+        items={memoizedDepartments}
+        setOpen={setOpenDeptDropdown}
+        setValue={setSelectedDepartment}
+        placeholder="Select a department"
+        searchable
+        searchPlaceholder="Search departments..."
+        style={styles.dropdown}
+        dropDownContainerStyle={styles.dropdownContainer}
+      /> */}
 
-        <Text style={styles.label}>Check List Name</Text>
-        <DropDownPicker
-          open={openChecklistDropdown}
-          value={selectedCheckList}
-          items={memoizedCheckLists}
-          setOpen={setOpenChecklistDropdown}
-          setValue={setSelectedCheckList}
-          searchable={true}
-          placeholder="Select a checklist"
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          onOpen={() => setOpenDeptDropdown(false)} 
-        />
-    
+      <Text style={styles.label}>Checklist</Text>
+      {/* <DropDownPicker
+        open={openChecklistDropdown}
+        value={selectedCheckList}
+        items={memoizedCheckLists}
+        setOpen={setOpenChecklistDropdown}
+        setValue={setSelectedCheckList}
+        placeholder="Select a checklist"
+        searchable
+        searchPlaceholder="Search checklists..."
+        style={styles.dropdown}
+        dropDownContainerStyle={styles.dropdownContainer}
+      /> */}
 
       <View style={styles.dateRow}>
         <View style={styles.datePickerContainer}>
-          <Text style={styles.label}>From Date</Text>
-          <TouchableOpacity onPress={() => setShowFromDatePicker(true)} style={styles.datePickerButton}>
-            <Text>{formatDate(fromDate,'dd-MM-YYYY')}</Text>
-          </TouchableOpacity>
-          {showFromDatePicker && (
-            <DateTimePicker
-              value={fromDate}
-              mode="date"
-              onChange={(event, selectedDate) => {
-                setShowFromDatePicker(false);
-                setFromDate(selectedDate || fromDate);
-              }}
-            />
-          )}
+         
+            <CustomDatePicker/>
+            <CustomDatePicker1/>
+          
         </View>
 
-        <View style={styles.datePickerContainer}>
-          <Text style={styles.label}>To Date</Text>
-          <TouchableOpacity onPress={() => setShowToDatePicker(true)} style={styles.datePickerButton}>
-            <Text>{formatDate(toDate,'dd-MM-YYYY')}</Text>
-          </TouchableOpacity>
-          {showToDatePicker && (
-            <DateTimePicker
-              value={toDate}
-              mode="date"
-              onChange={(event, selectedDate) => {
-                setShowToDatePicker(false);
-                setToDate(selectedDate || toDate);
-              }}
-            />
-          )}
-        </View>
+      
       </View>
 
       {isMenuVisible ? (
@@ -319,14 +294,17 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
 <View style={styles.buttonRow}>
   <TouchableOpacity onPress={() => setIsFilterModalVisible(true)} style={styles.filterButton}>
-    <FontAwesome name="filter" size={24} color="#1591ea" />
+  <FontAwesome name="filter" size={20} color="green" />
+  <Text style={styles.buttonText}>Filter</Text>
   </TouchableOpacity>
   <View style={styles.rightButtons}>
     <TouchableOpacity onPress={handleSearch} style={styles.button}>
-      <Text style={styles.buttonText}>Search</Text>
+    <FontAwesome name="search" size={20} color="blue" />
+    <Text style={styles.buttonText}>Search</Text>
     </TouchableOpacity>
     <TouchableOpacity onPress={handleClear} style={styles.button}>
-      <Text style={styles.buttonText}>Clear</Text>
+    <FontAwesome name="times" size={20} color="red" />
+    <Text style={styles.buttonText}>Clear</Text>
     </TouchableOpacity>
   </View>
 </View>
@@ -374,23 +352,27 @@ const getStatusColor = (status) => {
   }
 };
 
-const styles = StyleSheet.create({
+ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 16,
+    backgroundColor: '#fff',
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
-    fontFamily:'Roboto',
+    color: '#333',
+    fontFamily: 'Mulish-Regular',
     marginBottom: 8,
   },
   dropdown: {
+    borderColor: '#ccc',
     marginBottom: 16,
     zIndex: 15, 
   },
   dropdownContainer: {
+    borderColor: '#ccc',
+    borderWidth: 1,
     maxHeight: 500,
   },
   dateRow: {
@@ -405,86 +387,61 @@ const styles = StyleSheet.create({
   datePickerButton: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 12,
-    borderRadius: 4,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 16,
-    paddingHorizontal: 16,
-  },
-  
-  filterButton: {
-    padding: 1,
-    backgroundColor: 'white',
-    borderRadius: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 4, 
-  },
-  
-  rightButtons: {
-    flexDirection: 'row',
-    flexGrow: 1,
-    justifyContent: 'space-between', 
-  },
-  
-  button: {
-    flexGrow: 1,
-    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
-    backgroundColor: '#1591ea',
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     borderRadius: 8,
+  },
+  menuList: {
+    flex: 1,
+    marginTop: 16,
+  },
+  placeholder: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 8, 
   },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontFamily:'Roboto'
-  },
-  menuContainer: {
-    marginVertical: 16,
+  placeholderText: {
+    fontSize: 16,
+    color: '#999',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#fff',
   },
-  
-    iconContainer: {
-      marginRight: 10,
-    },
-    iconCircle: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
-      justifyContent: 'center', 
-      alignItems: 'center', 
-    },
-    iconText: {
-      color: 'white', 
-      fontSize: 14, 
-      fontWeight: 'bold', 
-    },
-
-  
   textGroup: {
     flex: 1,
+    marginLeft: 12,
   },
   textRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 4,
   },
   menuItemText: {
     fontSize: 14,
+    color: '#333',
   },
-  noDataText: {
-    textAlign: 'center',
-    marginVertical: 16,
+  iconContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: 'bold',
   },
   modalContainer: {
     flex: 1,
@@ -495,35 +452,89 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '80%',
     padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
+    backgroundColor: '#fff',
+    borderRadius: 8,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 20,
+    marginBottom: 16,
+    color: '#333',
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 20,
   },
+  modalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  
+  
+    buttonRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginVertical: 16,
+      paddingHorizontal: 10, // Add padding on sides
+    },
+    filterButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      borderRadius: 8,
+      backgroundColor: '#f0f0f0',
+    },
+    rightButtons: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    button: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      borderRadius: 8,
+      backgroundColor: '#f0f0f0',
+      marginLeft: 10, // Space between buttons
+    },
+    buttonText: {
+      marginLeft: 6,
+      fontSize: 16,
+      color: 'blue',
+    },
+
+  
+ 
+  noDataText: {
+    textAlign: 'center',
+    color: '#999',
+    marginTop: 20,
+  },
   listContainer: {
-    marginTop: 10,
+    marginBottom: 16,
   },
   listItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
-    marginBottom: 5,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#fff',
   },
   selectedItem: {
-    backgroundColor: '#add8e6', 
+    borderColor: '#007bff',
   },
   listItemText: {
-    fontSize: 16,
-  }
+    color: '#333',
+  },
 });
+
+
+
+
 
 export default App;
