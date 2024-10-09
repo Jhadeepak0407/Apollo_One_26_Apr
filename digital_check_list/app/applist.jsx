@@ -12,7 +12,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Dropdown } from "react-native-element-dropdown";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 
 const menuItems = [
   { name: "Digital CheckList", icon: "checklist", color: "#4CAF50", route: "Digital_Checklist_App/TriggeredChecklist" },
@@ -122,6 +122,8 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
+       <Stack.Screen
+        options={{title:"Home"}} />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => setModalVisible(true)}

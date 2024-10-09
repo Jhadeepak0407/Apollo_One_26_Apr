@@ -1,22 +1,31 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Button } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome'; // Importing FontAwesome icons
+import { useFonts, Mulish_400Regular, Mulish_600SemiBold } from '@expo-google-fonts/mulish'; // Importing Mulish font
 import RadioButtonGroup from '../../projects/digital_check_list/components/radioButtonComponent';
 import CustomDropdown from '../../projects/digital_check_list/components/dropDownListComponent';
+import { Stack } from 'expo-router';
 
 const colorPalette = {
-  primary: '#0056B3', 
+  primary: '#0056B3',
   secondary: '#F9F9F9',
-  accent: '#FF4C00', 
-  success: '#28A745', 
-  textDark: '#212529', 
-  textLight: '#FFFFFF', 
+  accent: '#FF4C00',
+  success: '#28A745',
+  textDark: '#212529',
+  textLight: '#FFFFFF',
   textSubtle: '#6C757D',
-  border: '#CED4DA', 
+  border: '#CED4DA',
 };
 
 const MainPage = () => {
   const [radioSelections, setRadioSelections] = useState({});
   const [dropdownValues, setDropdownValues] = useState({});
+
+  let [fontsLoaded] = useFonts({
+    Mulish_400Regular,
+    Mulish_600SemiBold,
+  });
+
 
   const data = {
     ipno: "DELIP0000",
@@ -75,6 +84,7 @@ const MainPage = () => {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <Stack.Screen options={{ title: "Edit Checklist" }} />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{data.checklistname}</Text>
       </View>
@@ -105,13 +115,13 @@ const MainPage = () => {
           ) : (
             <CustomDropdown
               data={point.controlvalues}
-              value={dropdownValues[point.id]} 
+              value={dropdownValues[point.id]}
               onChange={(item) => {
                 setDropdownValues(prev => ({
                   ...prev,
-                  [point.id]: item.onValueChange
+                  [point.id]: item.value
                 }));
-                console.log(`Selected for ${point.headername}: ${item.title}`); 
+                console.log(`Selected for ${point.headername}: ${item.title}`);
               }}
               placeholder="Select an option"
             />
@@ -120,8 +130,14 @@ const MainPage = () => {
       ))}
 
       <View style={styles.buttonContainer}>
-        <Button title="Draft Save" onPress={handleDraftSave} color={colorPalette.accent} />
-        <Button title="Final Save" onPress={handleFinalSave} color={colorPalette.success} />
+        <TouchableOpacity style={styles.button} onPress={handleDraftSave}>
+          <Icon name="save" size={20} color="#fff" />
+          <Text style={styles.buttonText}>Draft Save</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.successButton]} onPress={handleFinalSave}>
+          <Icon name="check-circle" size={20} color="#fff" />
+          <Text style={styles.buttonText}>Final Save</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -131,11 +147,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 15,
-    backgroundColor: colorPalette.secondary, 
+    backgroundColor: colorPalette.secondary,
   },
   header: {
     paddingVertical: 15,
-    backgroundColor: colorPalette.primary, 
+    backgroundColor: colorPalette.primary,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {
@@ -149,14 +165,15 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    color: colorPalette.textLight, 
+    color: colorPalette.textLight,
     textAlign: 'center',
+    fontFamily: 'Mulish_600SemiBold', // Use Mulish font
   },
   taskDetailsContainer: {
     marginBottom: 20,
     padding: 15,
     borderRadius: 10,
-    backgroundColor: '#E7F1FF', 
+    backgroundColor: '#E7F1FF',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -164,16 +181,17 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.2,
     shadowRadius: 1.5,
-    elevation: 2, 
+    elevation: 2,
   },
   taskDetail: {
     fontSize: 16,
     marginBottom: 5,
-    color: colorPalette.textDark, 
+    color: colorPalette.textDark,
+    fontFamily: 'Mulish_400Regular', // Use Mulish font
   },
   pointContainer: {
     marginVertical: 10,
-    backgroundColor: '#FFFFFF', 
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     padding: 15,
     shadowColor: '#000',
@@ -183,19 +201,39 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 1, 
+    elevation: 1,
   },
   pointHeader: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 10,
-    color: colorPalette.textDark, 
+    color: colorPalette.textDark,
+    fontFamily: 'Mulish_600SemiBold', // Use Mulish font
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 20,
     marginBottom: 40,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colorPalette.accent,
+    padding: 10,
+    borderRadius: 8,
+    width: '45%',
+    justifyContent: 'center',
+  },
+  successButton: {
+    backgroundColor: colorPalette.success,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
+    fontFamily: 'Mulish_600SemiBold', // Use Mulish font
   },
 });
 
