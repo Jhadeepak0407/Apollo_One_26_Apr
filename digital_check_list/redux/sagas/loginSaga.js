@@ -5,6 +5,7 @@ import {
   LoginFailure,
 } from "../actions/loginActions";
 import { loginApi } from "@/services/apis";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 function* LoginSaga(action) {
   try {
@@ -31,6 +32,15 @@ function* LoginSaga(action) {
         tmsdepartmentname: userdetail.tmsdepartmentname.trim(),
         tmsemployeelocationcode: userdetail.tmsemployeelocationcode.trim()
       }
+
+      try {
+        console.log("saving async");
+        yield AsyncStorage.setItem("auth", JSON.stringify(user));
+        console.log("saving async 2");
+      } catch (error) {
+        console.log("AIO = loginSaga.js => ERROR IN SAVING USER LOCALLY!");
+      }
+
       yield put({ type: 'LOGIN_SUCCESS', payload: user });
     }
   } catch (error) {
