@@ -4,6 +4,10 @@
       "android": {
         "buildType": "apk"
       },
+      "development": {
+        "developmentClient": true,
+        "distribution": "internal"
+      },
       "env": {
         "EAS_LOCAL_BUILD_SKIP_CLEANUP": "1"
       },
@@ -28,3 +32,17 @@
     }
   }
 }
+
+{
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {}
+  }
+}
+*/

@@ -1,4 +1,5 @@
 //import { GETPRODUCT_p } from "../constants/getproduct";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LOGIN_REQUEST, LOGIN_SUCCESS, LOGIN_FAILURE } from "../constants/userConstants";
 
 
@@ -27,6 +28,23 @@ const authReducer = (state = initialState, action) => {
       }
     }
     case "LOGIN_FAILURE": return { ...state, loading: false, error: action.payload }
+    case "LOGOUT": {
+      return {
+        user: {
+          id: null,
+          token: null,
+          usernametmslocation: null,
+          tmsuid: null,
+          tmsname: null,
+          tmsdesignationname: null,
+          tmsdepartmentid: null,
+          tmsdepartmentname: null,
+          tmsemployeelocationcode: null
+        },
+        loading: false,
+        error: null
+      }
+    }
     default:
       return state;
   }

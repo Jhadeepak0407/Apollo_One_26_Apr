@@ -2,7 +2,7 @@
   "expo": {
     "name": "digital_check_list",
     "slug": "digital_check_list",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.allansabuz.digital_check_list"
+      "package": "com.abhishek_kumar050490.digital_check_list"
     },
     "web": {
       "bundler": "metro",
@@ -44,6 +44,9 @@
     "extra": {
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "ea2cc15a-c235-4d12-b56c-6afbee88e127"
       }
     },
     "runtimeVersion": {
