@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo,useLayoutEffect } from 'react';
 import { View, Text,Modal, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView, Pressable, Platform, Dimensions, Alert, FlatList } from 'react-native';
-// import DropDownPicker from 'react-native-dropdown-picker';
+import DropDownPicker from 'react-native-dropdown-picker';
 // import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import CustomDatePicker from '../../projects/digital_check_list/components/DateRange';
+// import CustomDatePicker from '../../projects/digital_check_list/components/DateRange';
 import CustomDatePicker1 from '../../projects/digital_check_list/components/daterange1';
-
-
+import { useFonts, Mulish_400Regular } from '@expo-google-fonts/mulish';
 import { useNavigation  } from '@react-navigation/native';
 
 
 
-const { width } = Dimensions.get('window');
+// const { width } = Dimensions.get('window');
 
 
 
@@ -45,11 +44,11 @@ const FilterModal = ({ visible, onClose, onApplyFilter }) => {
 
       <View style={styles.modalButtons}>
         <TouchableOpacity onPress={applyFilter} style={styles.modalButton}>
-          <FontAwesome name="check" size={20} color="green" />
+          <FontAwesome name="check" size={20} color="#A490F6" />
           <Text style={styles.buttonText}>Apply</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={onClose} style={styles.modalButton}>
-          <FontAwesome name="times" size={20} color="red" />
+          <FontAwesome name="times" size={20} color="#A490F6" />
           <Text style={styles.buttonText}>Cancel</Text>
         </TouchableOpacity>
       </View>
@@ -89,11 +88,11 @@ const fetchCheckLists = async (locationId, departmentId) => {
 
 const fetchMenuDetails = async (checklistId, fromDate, toDate) => {
   try {
-    const formattedFromDate = formatDate(fromDate,'YYYY-MM-dd');
-    const formattedToDate = formatDate(toDate,'YYYY-MM-dd');
+    // const formattedFromDate = formatDate(fromDate,'YYYY-MM-dd');
+    // const formattedToDate = formatDate(toDate,'YYYY-MM-dd');
 
     
-    const apiUrl = `http://10.10.9.89:203/api/Users/TaksListByCheckListID?checklistid=${checklistId}&from=${formattedFromDate}&to=${formattedToDate}`;
+    const apiUrl = `http://10.10.9.89:203/api/Users/TaksListByCheckListID?checklistid=${checklistId}&from=${fromDate}&to=${toDate}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
     return data;
@@ -104,6 +103,11 @@ const fetchMenuDetails = async (checklistId, fromDate, toDate) => {
 };
 
 const App = () => {
+  let [fontsLoaded] = useFonts({
+    Mulish_400Regular,
+  });
+
+  const navigation = useNavigation();
   const locationId = '10701'; 
   const [menu, setMenu] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
@@ -153,6 +157,8 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const handleSearch = async () => {
     if (selectedCheckList && fromDate && toDate) {
       const menuDetails = await fetchMenuDetails(selectedCheckList, fromDate, toDate);
+      // console.log(fromDate)
+      // console.log(toDate)
       if (menuDetails && menuDetails.length > 0) {
         setMenu(menuDetails);
         setIsMenuVisible(true); 
@@ -199,13 +205,14 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
       navigation.navigate('Digital_Checklist_App/checkListEdit', {
         taskID: item.taskID,
         ipnumber: item.ipnumber,
+        // Rowid:item.Rowid,
       
       });
     };
     return (
   
     <Pressable onPress={handlePress}
-      style={({ pressed }) => [styles.menuItem, { backgroundColor: pressed ? '#f0f0f0' : '#fff' }]}
+      style={({ pressed }) => [styles.menuItem, { backgroundColor: pressed ? getStatusColor(item.status) : '#fff' }]}
     >
       <View style={styles.iconContainer}>
   <View style={[styles.iconCircle, { backgroundColor: getStatusColor(item.status) }]}>
@@ -229,6 +236,8 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
     );
   });
 
+
+
   return (
 
     <KeyboardAvoidingView
@@ -238,7 +247,7 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
     >
   
   <Text style={styles.label}>Department</Text>
-      {/* <DropDownPicker
+      <DropDownPicker
         open={openDeptDropdown}
         value={selectedDepartment}
         items={memoizedDepartments}
@@ -247,29 +256,36 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
         placeholder="Select a department"
         searchable
         searchPlaceholder="Search departments..."
+        searchTextInputStyle={styles.placeholderStyle}
+        searchContainerStyle={styles.placeholderStyle}
         style={styles.dropdown}
         dropDownContainerStyle={styles.dropdownContainer}
-      /> */}
+      />
 
       <Text style={styles.label}>Checklist</Text>
-      {/* <DropDownPicker
+      <DropDownPicker
         open={openChecklistDropdown}
         value={selectedCheckList}
         items={memoizedCheckLists}
         setOpen={setOpenChecklistDropdown}
         setValue={setSelectedCheckList}
         placeholder="Select a checklist"
-        searchable
         searchPlaceholder="Search checklists..."
+       
         style={styles.dropdown}
         dropDownContainerStyle={styles.dropdownContainer}
-      /> */}
+      />
 
       <View style={styles.dateRow}>
         <View style={styles.datePickerContainer}>
          
-            <CustomDatePicker/>
-            <CustomDatePicker1/>
+          
+        <CustomDatePicker1
+            fromDate={fromDate}
+            toDate={toDate}
+            setFromDate={setFromDate}
+            setToDate={setToDate}
+          />
           
         </View>
 
@@ -294,16 +310,16 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
 <View style={styles.buttonRow}>
   <TouchableOpacity onPress={() => setIsFilterModalVisible(true)} style={styles.filterButton}>
-  <FontAwesome name="filter" size={20} color="green" />
+  <FontAwesome name="filter" size={20} color="#A490F6" />
   <Text style={styles.buttonText}>Filter</Text>
   </TouchableOpacity>
   <View style={styles.rightButtons}>
     <TouchableOpacity onPress={handleSearch} style={styles.button}>
-    <FontAwesome name="search" size={20} color="blue" />
+    <FontAwesome name="search" size={20} color="#A490F6" />
     <Text style={styles.buttonText}>Search</Text>
     </TouchableOpacity>
     <TouchableOpacity onPress={handleClear} style={styles.button}>
-    <FontAwesome name="times" size={20} color="red" />
+    <FontAwesome name="times" size={20} color="#A490F6" />
     <Text style={styles.buttonText}>Clear</Text>
     </TouchableOpacity>
   </View>
@@ -319,25 +335,26 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
     </KeyboardAvoidingView>
   );
+
 };
 
 
-const formatDate = (date, format) => {
-  const day = String(date.getDate()).padStart(2, '0'); 
-  const month = String(date.getMonth() + 1).padStart(2, '0'); 
-  const year = date.getFullYear(); 
+// const formatDate = (date, format) => {
+//   const day = String(date.getDate()).padStart(2, '0'); 
+//   const month = String(date.getMonth() + 1).padStart(2, '0'); 
+//   const year = date.getFullYear(); 
 
 
-  switch (format) {
-    case 'dd-MM-YYYY':
-      return `${day}-${month}-${year}`;
-    case 'YYYY-MM-dd':
-      return `${year}-${month}-${day}`;
+//   switch (format) {
+//     case 'dd-MM-YYYY':
+//       return `${day}-${month}-${year}`;
+//     case 'YYYY-MM-dd':
+//       return `${year}-${month}-${day}`;
  
-    default:
-      return `${day}-${month}-${year}`; 
-  }
-};
+//     default:
+//       return `${day}-${month}-${year}`; 
+//   }
+// };
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -361,19 +378,21 @@ const getStatusColor = (status) => {
   },
   label: {
     fontSize: 16,
-    color: '#333',
-    fontFamily: 'Mulish-Regular',
+    // color: 'darkgrey',
+    fontFamily: 'Mulish_400Regular',
     marginBottom: 8,
   },
   dropdown: {
-    borderColor: '#ccc',
+    borderColor: '#A490F6',
     marginBottom: 16,
     zIndex: 15, 
+    borderBottomColor:'#A490F6',
   },
   dropdownContainer: {
-    borderColor: '#ccc',
+    borderColor: '#A490F6',
     borderWidth: 1,
     maxHeight: 500,
+  
   },
   dateRow: {
     flexDirection: 'row',
@@ -394,15 +413,27 @@ const getStatusColor = (status) => {
   menuList: {
     flex: 1,
     marginTop: 16,
+    borderColor:'#A490F6',
   },
   placeholder: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+   
+  
+   
+  },
+  
+  placeholderStyle:{
+    borderColor:'#A490F6',
+    borderBottomColor:'#A490F6',
+
   },
   placeholderText: {
     fontSize: 16,
     color: '#999',
+    fontFamily:'Mulish_400Regular',
+    
   },
   menuItem: {
     flexDirection: 'row',
@@ -425,7 +456,8 @@ const getStatusColor = (status) => {
   },
   menuItemText: {
     fontSize: 14,
-    color: '#333',
+    color: '#999',
+    fontFamily:'Mulish_400Regular',
   },
   iconContainer: {
     justifyContent: 'center',
@@ -453,12 +485,13 @@ const getStatusColor = (status) => {
     width: '80%',
     padding: 20,
     backgroundColor: '#fff',
+    fontFamily:'Mulish_400Regular',
     borderRadius: 8,
   },
   modalTitle: {
     fontSize: 20,
     marginBottom: 16,
-    color: '#333',
+    color: '#999',
   },
   modalButtons: {
     flexDirection: 'row',
@@ -504,7 +537,9 @@ const getStatusColor = (status) => {
     buttonText: {
       marginLeft: 6,
       fontSize: 16,
-      color: 'blue',
+      color: '#A490F6',
+       fontFamily:'Mulish_400Regular',
+    
     },
 
   
@@ -519,6 +554,7 @@ const getStatusColor = (status) => {
   },
   listItem: {
     padding: 10,
+    fontFamily:'Mulish_400Regular',
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
@@ -526,10 +562,10 @@ const getStatusColor = (status) => {
     backgroundColor: '#fff',
   },
   selectedItem: {
-    borderColor: '#007bff',
+    borderColor: '#A490F6',
   },
   listItemText: {
-    color: '#333',
+    color: '#A490F6',
   },
 });
 

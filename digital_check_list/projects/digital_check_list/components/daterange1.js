@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,15 @@ import {
   ScrollView,
   Modal,
 } from "react-native";
-import { Calendar, DateData } from "react-native-calendars";
+import { Calendar } from "react-native-calendars";
+
+// Helper function to format the date
+const formatDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const generateDateRange = (startDate, endDate) => {
   const dates = {};
@@ -16,7 +24,7 @@ const generateDateRange = (startDate, endDate) => {
   const end = new Date(endDate);
 
   while (currentDate <= end) {
-    const formattedDate = currentDate.toISOString().split("T")[0];
+    const formattedDate = formatDate(currentDate);
     dates[formattedDate] = {
       color: "#d9d2f9",
       textColor: "white",
@@ -27,64 +35,70 @@ const generateDateRange = (startDate, endDate) => {
   return dates;
 };
 
-const MyCalendar = () => {
-  const [showDate, setShowDate] = useState(false);
-  const [selectedStartDate, setSelectedStartDate] = useState("");
-  const [selectedEndDate, setSelectedEndDate] = useState("");
+const CustomDatePicker1 = ({ fromDate, toDate, setFromDate, setToDate }) => {
+  const [showDate, setShowDate] = React.useState(false);
 
-  const handleDayPress = (day) => {
+  const handleDayPress = useCallback((day) => {
     const selectedDate = day.dateString;
 
-    if (!selectedStartDate) {
-      setSelectedStartDate(selectedDate);
-      setSelectedEndDate("");
-    } else if (
-      !selectedEndDate &&
-      new Date(selectedDate) >= new Date(selectedStartDate)
-    ) {
-      setSelectedEndDate(selectedDate);
+    if (!fromDate) {
+      setFromDate(selectedDate);
+      setToDate("");
+    } else if (!toDate && new Date(selectedDate) >= new Date(fromDate)) {
+      setToDate(selectedDate);
     } else {
-      setSelectedStartDate(selectedDate);
-      setSelectedEndDate("");
+      setFromDate(selectedDate);
+      setToDate("");
     }
-  };
+  }, [fromDate, toDate, setFromDate, setToDate]);
 
-  const markedDates = {
-    ...generateDateRange(selectedStartDate, selectedEndDate),
-    [selectedStartDate]: {
-      selected: true,
-      color: "#A490F6", // Changed from Colors.listSecondaryBackground
-      textColor: "white",
-    },
-    [selectedEndDate]: {
-      selected: true,
-      color: "#A490F6", // Changed from Colors.listSecondaryBackground
-      textColor: "white",
-    },
-  };
+  const markedDates = useMemo(() => {
+    return {
+      ...generateDateRange(fromDate, toDate),
+      [fromDate]: {
+        selected: true,
+        color: "#A490F6",
+        textColor: "white",
+      },
+      [toDate]: {
+        selected: true,
+        color: "#A490F6",
+        textColor: "white",
+      },
+    };
+  }, [fromDate, toDate]);
 
-  const handleDate = () => {
-    setShowDate(!showDate);
-  };
+  const handleDateToggle = useCallback(() => {
+    setShowDate((prevState) => !prevState);
+  }, []);
+
+  useEffect(() => {
+    console.log("fromDate => ", fromDate);
+    console.log("toDate => ", toDate);
+  }, [fromDate, toDate]);
+
+  const formatDate1 = useCallback((date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  }, []);
+
+  console.log("CHecking me!")
 
   return (
-    <View style={{}}>
+    <View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={styles.specificationsDetails}>
-          <Pressable onPress={handleDate} style={{ flexDirection: "row" }}>
-            {showDate ? (
+          <Pressable onPress={handleDateToggle} style={{ flexDirection: "row" }}>
+            {fromDate && toDate ? (
               <Text style={styles.date}>
-                {selectedStartDate || "yy/mm/dd"} -{" "}
-                {selectedEndDate || "yy/mm/dd"}
+                {formatDate1(new Date(fromDate))} - {formatDate1(new Date(toDate))}
               </Text>
             ) : (
               <Text style={styles.date}>Select Dates</Text>
             )}
           </Pressable>
-          <Text style={styles.friend}>Crowd - Friends</Text>
-          <Text style={styles.friend}>
-            {"N"} {"Days"} {/* Removed specification references */}
-          </Text>
         </View>
       </ScrollView>
       {showDate && (
@@ -93,11 +107,7 @@ const MyCalendar = () => {
             <Modal animationType="none" transparent={true} visible={showDate}>
               <View style={styles.centeredView}>
                 <View style={styles.modalView}>
-                  <View
-                    style={{
-                      width: Dimensions.get("window").width,
-                    }}
-                  >
+                  <View style={{ width: Dimensions.get("window").width - 20 }}>
                     <Calendar
                       onDayPress={handleDayPress}
                       markedDates={markedDates}
@@ -112,14 +122,6 @@ const MyCalendar = () => {
                       <Text style={styles.doneBtnTxt}>Done</Text>
                     </Pressable>
                   </View>
-                  <View
-                    style={{
-                      width: 112,
-                      height: 5,
-                      backgroundColor: "#F0EDF3",
-                      borderRadius: 5,
-                    }}
-                  />
                 </View>
               </View>
             </Modal>
@@ -130,49 +132,31 @@ const MyCalendar = () => {
   );
 };
 
+// Wrap the component with React.memo
+export default React.memo(CustomDatePicker1);
+
 const styles = StyleSheet.create({
-  doneBtn: {
-    flexDirection: "row",
-    alignSelf: "flex-end",
-    paddingHorizontal: 25,
-    paddingVertical: 22,
-    gap: 30,
-  },
-  doneBtnTxt: {
-    fontWeight: "500",
-    color: "#A490F6", // Changed from Colors.listSecondaryBackground
-  },
   specificationsDetails: {
-    flexDirection: "row",
-    gap: 5,
-  },
-  friend: {
-    marginTop: 10,
+    padding: 7,
     borderWidth: 1,
-    borderColor: "#A490F6", // Changed from Colors.listSecondaryBackground
-    borderRadius: 20,
-    color: "#A89DDB",
-    padding: 10,
-    bottom: 1,
+    borderRadius: 10,
+    borderColor: "#A490F6",
+    backgroundColor: "#f9f9f9",
+    alignItems: "center",
+    margin: 2,
+    width: '100%',
+    justifyContent: "center",
+    flexDirection: "row",
   },
   date: {
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: "#A490F6", // Changed from Colors.listSecondaryBackground
-    borderRadius: 20,
-    color: "#A490F6",
-    padding: 10,
-    position: "relative",
-    bottom: 1,
+    fontSize: 16,
+    color: "#333",
+    padding: 5,
   },
   container: {
-    width: Dimensions.get("window").width - 20,
-  },
-  infoContainer: {
-    marginTop: 20,
-  },
-  infoText: {
-    fontSize: 16,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   centeredView: {
     flex: 1,
@@ -180,42 +164,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalView: {
-    marginTop: 50,
     backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
     elevation: 5,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    width: Dimensions.get("screen").width,
-    height: Dimensions.get("screen").height - 380,
   },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
+  doneBtn: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 20,
   },
-  buttonOpen: {
-    backgroundColor: "#F194FF",
-  },
-  buttonClose: {
-    backgroundColor: "#2196F3",
-  },
-  textStyle: {
-    color: "white",
+  doneBtnTxt: {
+    fontSize: 16,
+    color: "#A490F6",
     fontWeight: "bold",
-    textAlign: "center",
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: "center",
   },
 });
-
-export default MyCalendar;
