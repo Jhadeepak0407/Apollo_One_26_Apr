@@ -4,13 +4,10 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  Dimensions,
   ScrollView,
-  Modal,
 } from "react-native";
-import { Calendar } from "react-native-calendars";
+import DatePickerView from "./CustomDatePicker";
 
-// Helper function to format the date
 const formatDate = (date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -54,7 +51,6 @@ const CustomDatePicker1 = ({ fromDate, toDate, setFromDate, setToDate }) => {
 
   const markedDates = useMemo(() => {
     return {
-      ...generateDateRange(fromDate, toDate),
       [fromDate]: {
         selected: true,
         color: "#A490F6",
@@ -102,31 +98,10 @@ const CustomDatePicker1 = ({ fromDate, toDate, setFromDate, setToDate }) => {
         </View>
       </ScrollView>
       {showDate && (
-        <View style={styles.container}>
-          <View style={styles.centeredView}>
-            <Modal animationType="none" transparent={true} visible={showDate}>
-              <View style={styles.centeredView}>
-                <View style={styles.modalView}>
-                  <View style={{ width: Dimensions.get("window").width - 20 }}>
-                    <Calendar
-                      onDayPress={handleDayPress}
-                      markedDates={markedDates}
-                      markingType={"period"}
-                    />
-                  </View>
-                  <View style={styles.doneBtn}>
-                    <Pressable onPress={() => setShowDate(false)}>
-                      <Text style={styles.doneBtnTxt}>Cancel</Text>
-                    </Pressable>
-                    <Pressable onPress={() => setShowDate(false)}>
-                      <Text style={styles.doneBtnTxt}>Done</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </View>
-            </Modal>
-          </View>
-        </View>
+        <DatePickerView showDate={showDate}
+          handleDayPress={handleDayPress}
+          markedDates={markedDates}
+          setShowDate={setShowDate} />
       )}
     </View>
   );
@@ -152,33 +127,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     padding: 5,
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalView: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
-    alignItems: "center",
-    elevation: 5,
-  },
-  doneBtn: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    marginTop: 20,
-  },
-  doneBtnTxt: {
-    fontSize: 16,
-    color: "#A490F6",
-    fontWeight: "bold",
   },
 });

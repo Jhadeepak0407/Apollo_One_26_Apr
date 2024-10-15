@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import CustomDatePicker1 from "../../projects/digital_check_list/components/daterange1";
+import CustomDatePicker from "../../projects/digital_check_list/components/daterange1";
 import { useNavigation } from "@react-navigation/native";
 
 const FilterModal = ({ visible, onClose, onApplyFilter }) => {
@@ -291,7 +291,7 @@ const App = () => {
 
       <View style={styles.dateRow}>
         <View style={styles.datePickerContainer}>
-          <CustomDatePicker1
+          <CustomDatePicker
             fromDate={fromDate}
             toDate={toDate}
             setFromDate={setFromDate}
