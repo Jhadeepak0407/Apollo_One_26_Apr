@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text,Modal, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView, Pressable, Platform, Dimensions, Alert, FlatList } from 'react-native';
+import { View, Text, Modal, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView, Pressable, Platform, Dimensions, Alert, FlatList } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
-import { useNavigation  } from '@react-navigation/native';
+
+import { useNavigation } from '@react-navigation/native';
+import { Stack } from 'expo-router';
 
 
 
@@ -21,43 +23,43 @@ const FilterModal = ({ visible, onClose, onApplyFilter }) => {
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-  <View style={styles.modalContainer}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>Filter Options</Text>
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Filter Options</Text>
 
-      <Text style={styles.label}>Status</Text>
-      <View style={styles.listContainer}>
-        {['Completed', 'Pending', 'Drafted'].map((status) => (
-          <TouchableOpacity 
-            key={status} 
-            style={[
-              styles.listItem, 
-              statusFilter === status && styles.selectedItem
-            ]} 
-            onPress={() => setStatusFilter(status)}>
-            <Text style={styles.listItemText}>{status}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+          <Text style={styles.label}>Status</Text>
+          <View style={styles.listContainer}>
+            {['Completed', 'Pending', 'Drafted'].map((status) => (
+              <TouchableOpacity
+                key={status}
+                style={[
+                  styles.listItem,
+                  statusFilter === status && styles.selectedItem
+                ]}
+                onPress={() => setStatusFilter(status)}>
+                <Text style={styles.listItemText}>{status}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-      <View style={styles.modalButtons}>
-        <TouchableOpacity onPress={applyFilter} style={styles.modalButton}>
-          <FontAwesome name="check" size={20} color="green" />
-          <Text style={styles.buttonText}>Apply</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onClose} style={styles.modalButton}>
-          <FontAwesome name="times" size={20} color="red" />
-          <Text style={styles.buttonText}>Cancel</Text>
-        </TouchableOpacity>
+          <View style={styles.modalButtons}>
+            <TouchableOpacity onPress={applyFilter} style={styles.modalButton}>
+              <FontAwesome name="check" size={20} color="green" />
+              <Text style={styles.buttonText}>Apply</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onClose} style={styles.modalButton}>
+              <FontAwesome name="times" size={20} color="red" />
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
-    </View>
-  </View>
-</Modal>
+    </Modal>
 
   );
 };
 
- 
+
 
 
 const fetchDepartments = async (locationId) => {
@@ -86,10 +88,10 @@ const fetchCheckLists = async (locationId, departmentId) => {
 
 const fetchMenuDetails = async (checklistId, fromDate, toDate) => {
   try {
-    const formattedFromDate = formatDate(fromDate,'YYYY-MM-dd');
-    const formattedToDate = formatDate(toDate,'YYYY-MM-dd');
+    const formattedFromDate = formatDate(fromDate, 'YYYY-MM-dd');
+    const formattedToDate = formatDate(toDate, 'YYYY-MM-dd');
 
-    
+
     const apiUrl = `http://10.10.9.89:203/api/Users/TaksListByCheckListID?checklistid=${checklistId}&from=${formattedFromDate}&to=${formattedToDate}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
@@ -101,7 +103,7 @@ const fetchMenuDetails = async (checklistId, fromDate, toDate) => {
 };
 
 const App = () => {
-  const locationId = '10701'; 
+  const locationId = '10701';
   const [menu, setMenu] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [departments, setDepartments] = useState([]);
@@ -114,18 +116,18 @@ const App = () => {
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
   const [showToDatePicker, setShowToDatePicker] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [filterStatus, setFilterStatus] = useState(null); 
-const [isFilterModalVisible, setIsFilterModalVisible] = useState(false); 
+  const [filterStatus, setFilterStatus] = useState(null);
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
- 
+
   const memoizedDepartments = useMemo(() => departments, [departments]);
   const memoizedCheckLists = useMemo(() => checkLists, [checkLists]);
 
   const filteredMenu = useMemo(() => {
-    if (!filterStatus) return menu; 
-    return menu.filter((item) => item.status === filterStatus); 
+    if (!filterStatus) return menu;
+    return menu.filter((item) => item.status === filterStatus);
   }, [menu, filterStatus]);
- 
+
   useEffect(() => {
     fetchDepartments(locationId).then((data) => {
       if (Array.isArray(data)) {
@@ -134,7 +136,7 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
     });
   }, [locationId]);
 
-  
+
   useEffect(() => {
     if (selectedDepartment) {
       fetchCheckLists(locationId, selectedDepartment).then((data) => {
@@ -152,10 +154,10 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
       const menuDetails = await fetchMenuDetails(selectedCheckList, fromDate, toDate);
       if (menuDetails && menuDetails.length > 0) {
         setMenu(menuDetails);
-        setIsMenuVisible(true); 
+        setIsMenuVisible(true);
       } else {
         setMenu([]);
-        setIsMenuVisible(false); 
+        setIsMenuVisible(false);
       }
     } else {
       alert('Please select a checklist and valid date range.');
@@ -170,28 +172,27 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
         {
           text: 'OK',
           onPress: () => {
-            
-            setSelectedDepartment(''); 
-            setSelectedCheckList(null); 
+
+            setSelectedDepartment('');
+            setSelectedCheckList(null);
             setFromDate(new Date());
             setToDate(new Date());
-            setMenu([]); 
-            setIsMenuVisible(false); 
+            setMenu([]);
+            setIsMenuVisible(false);
           },
         },
       ],
-      { cancelable: true } 
+      { cancelable: true }
     );
   }, []);
 
- 
- 
 
- 
+
+
+
   const MenuItem = React.memo(({ item }) => {
-    const navigation = useNavigation(); // Initialize navigation
+    const navigation = useNavigation();
 
-    // Define the handlePress function for navigation
     const handlePress = () => {
       navigation.navigate('Digital_Checklist_App/checkListEdit', {
         taskID: item.taskID,
@@ -202,29 +203,31 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
       });
     };
     return (
-  
-    <Pressable onPress={handlePress}
-      style={({ pressed }) => [styles.menuItem, { backgroundColor: pressed ? '#f0f0f0' : '#fff' }]}
-    >
-      <View style={styles.iconContainer}>
-  <View style={[styles.iconCircle, { backgroundColor: getStatusColor(item.status) }]}>
-    {/* Display the letter based on the status */}
-    <Text style={styles.iconText}>
-      {item.status === 'Completed' ? 'C' : item.status === 'Pending' ? 'P' : item.status === 'Drafted' ? 'D' : ''}
-    </Text>
-  </View>
-</View>
 
-      <View style={styles.textGroup}>
-        <View style={styles.textRow}>
-          <Text style={styles.menuItemText}>{item.taskID}</Text>
-          <Text style={styles.menuItemText}>{item.ipnumber}</Text>
+      <Pressable onPress={handlePress}
+        style={({ pressed }) => [styles.menuItem, { backgroundColor: pressed ? '#f0f0f0' : '#fff' }]}
+      >
+
+        <View style={styles.iconContainer}>
+
+          <View style={[styles.iconCircle, { backgroundColor: getStatusColor(item.status) }]}>
+            {/* Display the letter based on the status */}
+            <Text style={styles.iconText}>
+              {item.status === 'Completed' ? 'C' : item.status === 'Pending' ? 'P' : item.status === 'Drafted' ? 'D' : ''}
+            </Text>
+          </View>
         </View>
-        <View style={styles.textRow}>
-          <Text style={styles.menuItemText}>{item.bedCode}/{item.ward}</Text>
+
+        <View style={styles.textGroup}>
+          <View style={styles.textRow}>
+            <Text style={styles.menuItemText}>{item.taskID}</Text>
+            <Text style={styles.menuItemText}>{item.ipnumber}</Text>
+          </View>
+          <View style={styles.textRow}>
+            <Text style={styles.menuItemText}>{item.bedCode}/{item.ward}</Text>
+          </View>
         </View>
-      </View>
-    </Pressable>
+      </Pressable>
     );
   });
 
@@ -235,41 +238,44 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
     >
-  
-        <Text style={styles.label}>Department</Text>
-        <DropDownPicker
-          open={openDeptDropdown}
-          value={selectedDepartment}
-          items={memoizedDepartments}
-          setOpen={setOpenDeptDropdown}
-          setValue={setSelectedDepartment}
-          searchable={true}
-          placeholder="Select a department"
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          onOpen={() => setOpenChecklistDropdown(false)} 
-        />
+      <View>
+        <Stack.Screen
+          options={{ title: "Digital CheckList", statusBarColor:"black" }} />
+      </View>
+      <Text style={styles.label}>Department</Text>
+      <DropDownPicker
+        open={openDeptDropdown}
+        value={selectedDepartment}
+        items={memoizedDepartments}
+        setOpen={setOpenDeptDropdown}
+        setValue={setSelectedDepartment}
+        searchable={true}
+        placeholder="Select a department"
+        style={styles.dropdown}
+        dropDownContainerStyle={styles.dropdownContainer}
+        onOpen={() => setOpenChecklistDropdown(false)}
+      />
 
-        <Text style={styles.label}>Check List Name</Text>
-        <DropDownPicker
-          open={openChecklistDropdown}
-          value={selectedCheckList}
-          items={memoizedCheckLists}
-          setOpen={setOpenChecklistDropdown}
-          setValue={setSelectedCheckList}
-          searchable={true}
-          placeholder="Select a checklist"
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          onOpen={() => setOpenDeptDropdown(false)} 
-        />
-    
+      <Text style={styles.label}>Check List Name</Text>
+      <DropDownPicker
+        open={openChecklistDropdown}
+        value={selectedCheckList}
+        items={memoizedCheckLists}
+        setOpen={setOpenChecklistDropdown}
+        setValue={setSelectedCheckList}
+        searchable={true}
+        placeholder="Select a checklist"
+        style={styles.dropdown}
+        dropDownContainerStyle={styles.dropdownContainer}
+        onOpen={() => setOpenDeptDropdown(false)}
+      />
+
 
       <View style={styles.dateRow}>
         <View style={styles.datePickerContainer}>
           <Text style={styles.label}>From Date</Text>
           <TouchableOpacity onPress={() => setShowFromDatePicker(true)} style={styles.datePickerButton}>
-            <Text>{formatDate(fromDate,'dd-MM-YYYY')}</Text>
+            <Text>{formatDate(fromDate, 'dd-MM-YYYY')}</Text>
           </TouchableOpacity>
           {showFromDatePicker && (
             <DateTimePicker
@@ -286,7 +292,7 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
         <View style={styles.datePickerContainer}>
           <Text style={styles.label}>To Date</Text>
           <TouchableOpacity onPress={() => setShowToDatePicker(true)} style={styles.datePickerButton}>
-            <Text>{formatDate(toDate,'dd-MM-YYYY')}</Text>
+            <Text>{formatDate(toDate, 'dd-MM-YYYY')}</Text>
           </TouchableOpacity>
           {showToDatePicker && (
             <DateTimePicker
@@ -308,7 +314,7 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
           renderItem={({ item }) => <MenuItem item={item} />}
           ListEmptyComponent={<Text style={styles.noDataText}>No data available</Text>}
           nestedScrollEnabled
-          style={styles.menuList} 
+          style={styles.menuList}
         />
       ) : (
         <View style={styles.placeholder}>
@@ -317,27 +323,27 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
         </View>
       )}
 
-<View style={styles.buttonRow}>
-  <TouchableOpacity onPress={() => setIsFilterModalVisible(true)} style={styles.filterButton}>
-    <FontAwesome name="filter" size={24} color="#1591ea" />
-  </TouchableOpacity>
-  <View style={styles.rightButtons}>
-    <TouchableOpacity onPress={handleSearch} style={styles.button}>
-      <Text style={styles.buttonText}>Search</Text>
-    </TouchableOpacity>
-    <TouchableOpacity onPress={handleClear} style={styles.button}>
-      <Text style={styles.buttonText}>Clear</Text>
-    </TouchableOpacity>
-  </View>
-</View>
-<FilterModal
-  visible={isFilterModalVisible}
-  onClose={() => setIsFilterModalVisible(false)}
-  onApplyFilter={(status) => {
-    setFilterStatus(status);
-    setIsFilterModalVisible(false);
-  }}
-/>
+      <View style={styles.buttonRow}>
+        <TouchableOpacity onPress={() => setIsFilterModalVisible(true)} style={styles.filterButton}>
+          <FontAwesome name="filter" size={24} color="#1591ea" />
+        </TouchableOpacity>
+        <View style={styles.rightButtons}>
+          <TouchableOpacity onPress={handleSearch} style={styles.button}>
+            <Text style={styles.buttonText}>Search</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleClear} style={styles.button}>
+            <Text style={styles.buttonText}>Clear</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <FilterModal
+        visible={isFilterModalVisible}
+        onClose={() => setIsFilterModalVisible(false)}
+        onApplyFilter={(status) => {
+          setFilterStatus(status);
+          setIsFilterModalVisible(false);
+        }}
+      />
 
     </KeyboardAvoidingView>
   );
@@ -345,9 +351,9 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
 
 const formatDate = (date, format) => {
-  const day = String(date.getDate()).padStart(2, '0'); 
-  const month = String(date.getMonth() + 1).padStart(2, '0'); 
-  const year = date.getFullYear(); 
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
 
 
   switch (format) {
@@ -355,9 +361,9 @@ const formatDate = (date, format) => {
       return `${day}-${month}-${year}`;
     case 'YYYY-MM-dd':
       return `${year}-${month}-${day}`;
- 
+
     default:
-      return `${day}-${month}-${year}`; 
+      return `${day}-${month}-${year}`;
   }
 };
 
@@ -383,12 +389,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: 'bold',
-    fontFamily:'Roboto',
+    fontFamily: 'Roboto',
     marginBottom: 8,
   },
   dropdown: {
     marginBottom: 16,
-    zIndex: 15, 
+    zIndex: 15,
   },
   dropdownContainer: {
     maxHeight: 500,
@@ -415,34 +421,34 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingHorizontal: 16,
   },
-  
+
   filterButton: {
     padding: 1,
     backgroundColor: 'white',
     borderRadius: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 4, 
+    marginRight: 4,
   },
-  
+
   rightButtons: {
     flexDirection: 'row',
     flexGrow: 1,
-    justifyContent: 'space-between', 
+    justifyContent: 'space-between',
   },
-  
+
   button: {
     flexGrow: 1,
     paddingVertical: Platform.OS === 'ios' ? 14 : 12,
     backgroundColor: '#1591ea',
     borderRadius: 8,
     alignItems: 'center',
-    marginLeft: 8, 
+    marginLeft: 8,
   },
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontFamily:'Roboto'
+    fontFamily: 'Roboto'
   },
   menuContainer: {
     marginVertical: 16,
@@ -454,24 +460,24 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
-  
-    iconContainer: {
-      marginRight: 10,
-    },
-    iconCircle: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
-      justifyContent: 'center', 
-      alignItems: 'center', 
-    },
-    iconText: {
-      color: 'white', 
-      fontSize: 14, 
-      fontWeight: 'bold', 
-    },
 
-  
+  iconContainer: {
+    marginRight: 10,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+
+
   textGroup: {
     flex: 1,
   },
@@ -519,7 +525,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   selectedItem: {
-    backgroundColor: '#add8e6', 
+    backgroundColor: '#add8e6',
   },
   listItemText: {
     fontSize: 16,

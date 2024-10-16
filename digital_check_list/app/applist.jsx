@@ -12,7 +12,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Dropdown } from "react-native-element-dropdown";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useDispatch } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -128,12 +128,14 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
+       <Stack.Screen
+        options={{title:"Home", statusBarColor:"black"}} />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
           style={styles.iconButton}
         >
-          <MaterialIcons name="account-circle" size={28} color="white" />
+          <MaterialIcons name="account-circle" size={28} cFolor="white" />
         </TouchableOpacity>
       </View>
       <View style={styles.dropdownContainer}>
