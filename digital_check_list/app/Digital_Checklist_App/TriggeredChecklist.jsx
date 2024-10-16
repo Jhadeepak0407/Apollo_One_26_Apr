@@ -7,8 +7,10 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import CustomDatePicker1 from '../../projects/digital_check_list/components/daterange1';
 import { useFonts, Mulish_400Regular } from '@expo-google-fonts/mulish';
 import { useNavigation  } from '@react-navigation/native';
+// import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
 
-
+//const Stack = createStackNavigator();
 
 // const { width } = Dimensions.get('window');
 
@@ -85,12 +87,17 @@ const fetchCheckLists = async (locationId, departmentId) => {
   }
 };
 
+// const formatDate = (date) => {
+//   const year = date.getFullYear();
+//   const month = String(date.getMonth() + 1).padStart(2, '0');
+//   const day = String(date.getDate()).padStart(2, '0');
+//   return `${year}-${month}-${day}`;
+// };
 
 const fetchMenuDetails = async (checklistId, fromDate, toDate) => {
   try {
-    // const formattedFromDate = formatDate(fromDate,'YYYY-MM-dd');
-    // const formattedToDate = formatDate(toDate,'YYYY-MM-dd');
-
+    //const formattedFromDate = formatDate(fromDate || new Date(), 'YYYY-MM-DD');
+//const formattedToDate = formatDate(toDate || new Date(), 'YYYY-MM-DD');
     
     const apiUrl = `http://10.10.9.89:203/api/Users/TaksListByCheckListID?checklistid=${checklistId}&from=${fromDate}&to=${toDate}`;
     const response = await fetch(apiUrl);
@@ -101,6 +108,20 @@ const fetchMenuDetails = async (checklistId, fromDate, toDate) => {
     return [];
   }
 };
+
+
+// Home Screen Component
+function HomeScreen({ navigation }) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Home Screen</Text>
+      <Button
+        title="Go to Details"
+        onPress={() => navigation.navigate('applist')}
+      />
+    </View>
+  );
+}
 
 const App = () => {
   let [fontsLoaded] = useFonts({
@@ -194,7 +215,23 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   }, []);
 
  
- 
+  // <NavigationContainer>
+  //     <Stack.Navigator
+  //       initialRouteName="Home"
+  //       screenOptions={({ navigation }) => ({
+  //         headerRight: () => (
+  //           <Icon
+  //             name="home"
+  //             size={24}
+  //             color="#A490F6"
+  //             style={{ marginRight: 10 }} // Adjust margin to place it properly
+  //             onPress={() => navigation.navigate('applist')} // Navigate back to home when pressed
+  //           />
+  //         ),
+  //       })}
+  //     >
+  //     </Stack.Navigator>
+  //   </NavigationContainer>
 
  
   const MenuItem = React.memo(({ item }) => {
@@ -205,7 +242,7 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
       navigation.navigate('Digital_Checklist_App/checkListEdit', {
         taskID: item.taskID,
         ipnumber: item.ipnumber,
-        // Rowid:item.Rowid,
+       Rowid:item.rowid,
       
       });
     };
@@ -397,11 +434,11 @@ const getStatusColor = (status) => {
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   datePickerContainer: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 5,
   },
   datePickerButton: {
     borderWidth: 1,

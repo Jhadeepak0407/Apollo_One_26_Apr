@@ -137,13 +137,13 @@ export default React.memo(CustomDatePicker1);
 
 const styles = StyleSheet.create({
   specificationsDetails: {
-    padding: 7,
+    padding: 8,
     borderWidth: 1,
     borderRadius: 10,
     borderColor: "#A490F6",
     backgroundColor: "#f9f9f9",
     alignItems: "center",
-    margin: 2,
+    margin:1,
     width: '100%',
     justifyContent: "center",
     flexDirection: "row",

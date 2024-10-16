@@ -1667,11 +1667,6 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.8.tgz#21a907684723bbbaa5f0974cf7730bd797eb8e62"
   integrity sha512-kym7SodPp8/wloecOpcmSnWJsK7M0E5Wg8UcFA+uO4B9s5d0ywXOEro/8HM9x0rW+TljRzul/14UYz3TleT3ig==
 
-"@fontsource/mulish@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@fontsource/mulish/-/mulish-5.1.0.tgz#e5cfb25d3dc83e0f4f0c828708b304bf33c9f7a4"
-  integrity sha512-dETFYrY9aGE1aD8g3xSkpyAir2YDjrnYsujZrZj1C/3gv3iKlr2MUQYUFRTCdcnoFLMXpq2izDW/644OGgYsPQ==
-
 "@fortawesome/fontawesome-common-types@6.6.0":
   version "6.6.0"
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-6.6.0.tgz#31ab07ca6a06358c5de4d295d4711b675006163f"
