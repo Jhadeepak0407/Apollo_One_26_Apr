@@ -123,13 +123,13 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
        <Stack.Screen
-        options={{title:"Home"}} />
+        options={{title:"Home", statusBarColor:"black"}} />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
           style={styles.iconButton}
         >
-          <MaterialIcons name="account-circle" size={28} color="white" />
+          <MaterialIcons name="account-circle" size={28} cFolor="white" />
         </TouchableOpacity>
       </View>
       <View style={styles.dropdownContainer}>

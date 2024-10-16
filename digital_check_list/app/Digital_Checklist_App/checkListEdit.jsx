@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Picker } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Importing FontAwesome icons
 import { useFonts, Mulish_400Regular, Mulish_600SemiBold } from '@expo-google-fonts/mulish'; // Importing Mulish font
-import RadioButtonGroup from '../../projects/digital_check_list/components/radioButtonComponent';
-import CustomDropdown from '../../projects/digital_check_list/components/dropDownListComponent';
 import { Stack } from 'expo-router';
+import axios from 'axios';
 
 const colorPalette = {
   primary: '#0056B3',
@@ -13,121 +12,125 @@ const colorPalette = {
   success: '#28A745',
   textDark: '#212529',
   textLight: '#FFFFFF',
-  textSubtle: '#6C757D',
   border: '#CED4DA',
+};      
+
+const renderControl = (field, onChange) => {
+  switch (field.fieldType) {
+    case 'Textbox':
+      return (
+        <TextInput
+          style={styles.input}
+          placeholder={`Enter ${field.fieldName}`} 
+          onChangeText={text => onChange(field.fieldId, text)}
+        />
+      );
+    case 'Dropdown':
+      return (
+        <Picker
+          style={styles.input}
+          onValueChange={value => onChange(field.fieldId, value)} 
+        >
+          <Picker.Item label={`Select ${field.fieldName}`} value="" />
+          {field.controlvalues && field.controlvalues.map(option => (
+            <Picker.Item key={option.value} label={option.title} value={option.value} />
+          ))}
+        </Picker>
+      );
+    default:
+      return <Text>No control available</Text>; // Fallback
+  }
 };
 
 const MainPage = () => {
-  const [radioSelections, setRadioSelections] = useState({});
-  const [dropdownValues, setDropdownValues] = useState({});
+  const [dataa, setData] = useState({ pointsToCheck: [] }); // Initialize with empty pointsToCheck
+  const [loading, setLoading] = useState(true); // State to manage loading status
+  const [error, setError] = useState(null); // State to manage error
+  const [formValues, setFormValues] = useState({}); // State to manage form input values
 
   let [fontsLoaded] = useFonts({
     Mulish_400Regular,
     Mulish_600SemiBold,
   });
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains?taskid=16`);
+        const fetchedData = response.data;
 
-  const data = {
-    ipno: "DELIP0000",
-    checklistname: "Daily Discharge Room Checklist",
-    taskDetails: {
-      taskID: 123,
-      Ward: '4th floor',
-      Room: '2654',
-      status: 'Pending',
-      taskDate: '23/09/2024'
-    },
-    pointsToCheck: [
-      {
-        id: 1,
-        headername: '1. Main Door Lock And Hinges',
-        controltype: 'radiobutton',
-        controlvalues: [
-          { title: 'OK', value: 0 },
-          { title: 'Not OK', value: 1 },
-          { title: 'N/A', value: 2 }
-        ],
-        Remarks: 'Please provide details if not ok or n/a.'
-      },
-      {
-        id: 2,
-        controltype: 'radiobutton',
-        headername: '2. A/C Thermostat And Remote',
-        controlvalues: [
-          { title: 'OK', value: 0 },
-          { title: 'Not OK', value: 1 },
-          { title: 'N/A', value: 2 }
-        ],
-        Remarks: 'Additional comments here.'
-      },
-      {
-        id: 3,
-        controltype: 'dropdownlist',
-        headername: '3. A/C Noise Free',
-        controlvalues: [
-          { title: 'OK', value: 0 },
-          { title: 'Not OK', value: 1 },
-          { title: 'N/A', value: 2 }
-        ],
-        Remarks: 'Select the appropriate option.'
+        if (!fetchedData || fetchedData.length === 0) {
+          throw new Error('Fetched data is empty or invalid.');
+        }
+
+        console.log('Fetched Main Data:', fetchedData); 
+
+        const promises = fetchedData.map(async (item) => {
+          const { fieldId } = item;
+
+          if (!fieldId) {
+            console.warn(`FieldId is missing for item: ${JSON.stringify(item)}`);
+            return null;
+          }
+
+          const subResponse = await axios.get(`http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Main_sub?Fieldid=102&IsMainHeader=1&Action=TextBox`);
+          const subData = subResponse.data;
+
+          return { ...item, subData };
+        });
+
+        const allResponses = await Promise.all(promises);
+
+        const filteredResponses = allResponses.filter(response => response !== null);
+        console.log('All Merged Responses:', filteredResponses);
+
+        setData({ pointsToCheck: filteredResponses });
+      } catch (error) {
+        console.error('Error fetching data:', error.message);
+        setError('Error fetching data.');
+      } finally {
+        setLoading(false);
       }
-    ]
+    };
+
+    fetchData();
+  }, []);
+
+  const handleInputChange = (fieldId, value) => {
+    setFormValues(prevValues => ({
+      ...prevValues,
+      [fieldId]: value,
+    }));
   };
 
   const handleDraftSave = () => {
-    console.log('Draft saved:', { radioSelections, dropdownValues });
+    console.log('Draft saved:', formValues);
   };
 
   const handleFinalSave = () => {
-    console.log('Final saved:', { radioSelections, dropdownValues });
+    console.log('Final saved:', formValues);
   };
+
+  if (loading) {
+    return <Text>Loading...</Text>; 
+  }
+
+  if (error) {
+    return <Text>Error: {error}</Text>; 
+  }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Stack.Screen options={{ title: "Edit Checklist" }} />
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{data.checklistname}</Text>
-      </View>
+      <Stack.Screen options={{ title: "Edit Checklist", statusBarColor: "black" }} />
 
       <View style={styles.taskDetailsContainer}>
-        <Text style={styles.taskDetail}>IP No: {data.ipno}</Text>
-        <Text style={styles.taskDetail}>Ward: {data.taskDetails.Ward}</Text>
-        <Text style={styles.taskDetail}>Room: {data.taskDetails.Room}</Text>
-        <Text style={styles.taskDetail}>Status: {data.taskDetails.status}</Text>
-        <Text style={styles.taskDetail}>Task Date: {data.taskDetails.taskDate}</Text>
+        {dataa.pointsToCheck.map((point) => (
+          <View key={point.fieldId} style={styles.fieldContainer}>
+            <Text style={styles.taskDetail}>{point.fieldName}</Text>
+            {point.subData && point.subData.map(field => renderControl(field, handleInputChange))} {/* Loop through subData */}
+          </View>
+        ))}
       </View>
-
-      {data.pointsToCheck.map((point) => (
-        <View key={point.id} style={styles.pointContainer}>
-          <Text style={styles.pointHeader}>{point.headername}</Text>
-          {point.controltype === 'radiobutton' ? (
-            <RadioButtonGroup
-              options={point.controlvalues.map(value => ({ label: value.title.toUpperCase(), value: value.value }))}
-              onValueChange={(selectedValue) => {
-                setRadioSelections(prev => ({
-                  ...prev,
-                  [point.id]: selectedValue
-                }));
-                console.log(`Selected for ${point.headername}: ${point.controlvalues[selectedValue]?.title}`);
-              }}
-              nARemarks={point.Remarks}
-            />
-          ) : (
-            <CustomDropdown
-              data={point.controlvalues}
-              value={dropdownValues[point.id]}
-              onChange={(item) => {
-                setDropdownValues(prev => ({
-                  ...prev,
-                  [point.id]: item.value
-                }));
-                console.log(`Selected for ${point.headername}: ${item.title}`);
-              }}
-              placeholder="Select an option"
-            />
-          )}
-        </View>
-      ))}
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={handleDraftSave}>
@@ -149,91 +152,42 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: colorPalette.secondary,
   },
-  header: {
-    paddingVertical: 15,
-    backgroundColor: colorPalette.primary,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-    marginBottom: 15,
-  },
-  headerTitle: {
-    fontSize: 18,
-    color: colorPalette.textLight,
-    textAlign: 'center',
-    fontFamily: 'Mulish_600SemiBold', // Use Mulish font
-  },
   taskDetailsContainer: {
-    marginBottom: 20,
-    padding: 15,
-    borderRadius: 10,
-    backgroundColor: '#E7F1FF',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.5,
-    elevation: 2,
+    padding: 10,
+  },
+  fieldContainer: {
+    marginVertical: 10,
   },
   taskDetail: {
     fontSize: 16,
-    marginBottom: 5,
-    color: colorPalette.textDark,
-    fontFamily: 'Mulish_400Regular', // Use Mulish font
+    fontFamily: 'Mulish_400Regular',
   },
-  pointContainer: {
-    marginVertical: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 10,
-    padding: 15,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  pointHeader: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 10,
-    color: colorPalette.textDark,
-    fontFamily: 'Mulish_600SemiBold', // Use Mulish font
+  input: {
+    height: 40,
+    borderColor: colorPalette.border,
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginVertical: 5,
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     marginTop: 20,
-    marginBottom: 40,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colorPalette.accent,
     padding: 10,
-    borderRadius: 8,
-    width: '45%',
-    justifyContent: 'center',
+    backgroundColor: colorPalette.accent,
+    borderRadius: 5,
   },
   successButton: {
     backgroundColor: colorPalette.success,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 8,
-    fontFamily: 'Mulish_600SemiBold', // Use Mulish font
+    marginLeft: 10,
   },
 });
 

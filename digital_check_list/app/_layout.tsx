@@ -2,15 +2,17 @@ import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 import { store } from "@/redux/store";
-import { StatusBar } from 'expo-status-bar';
-
+import {  } from 'expo-status-bar';
+import {View, StatusBar} from "react-native"
 export default function Layout() {
   return (
-    <SafeAreaProvider>
-      <StatusBar style="inverted" />
+    <View style={{
+      flex:1
+    }}>
+      <StatusBar barStyle="light-content" backgroundColor="#000"/>
       <Provider store={store}>
         <Stack />
       </Provider>
-    </SafeAreaProvider>
+    </View>
   );
 }

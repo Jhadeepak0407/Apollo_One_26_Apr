@@ -4,7 +4,6 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
-import { StatusBar } from 'expo-status-bar';
 
 import { useNavigation } from '@react-navigation/native';
 import { Stack } from 'expo-router';
@@ -241,7 +240,7 @@ const App = () => {
     >
       <View>
         <Stack.Screen
-          options={{ title: "Digital CheckList" }} />
+          options={{ title: "Digital CheckList", statusBarColor:"black" }} />
       </View>
       <Text style={styles.label}>Department</Text>
       <DropDownPicker
