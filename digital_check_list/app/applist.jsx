@@ -13,6 +13,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Dropdown } from "react-native-element-dropdown";
 import { Stack, useRouter } from "expo-router";
+import { useDispatch } from "react-redux";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const menuItems = [
   { name: "Digital CheckList", icon: "checklist", color: "#4CAF50", route: "Digital_Checklist_App/TriggeredChecklist" },
@@ -35,7 +37,7 @@ const HomeScreen = () => {
       axios
         .get("http://10.10.9.89:203/api/Users/GetAllLocationList")
         .then((response) => {
-          console.log("APPLIST API => ", response)
+          // console.log("APPLIST API => ", response)
           const fetchedLocations = response.data.map((loc) => ({
             value: loc.location_Id,
             label: loc.location_Display_Name,
@@ -106,7 +108,7 @@ const HomeScreen = () => {
       <Animated.View style={[styles.menuItem, animatedStyle]}>
         <TouchableOpacity
           style={[styles.menuButton, { backgroundColor: item.color }]}
-          onPress={() => navigation.navigate(item.route)} 
+          onPress={() => navigation.navigate(item.route)}
         >
           <MaterialIcons name={item.icon} size={40} color="white" />
         </TouchableOpacity>
@@ -115,7 +117,11 @@ const HomeScreen = () => {
     );
   };
 
-  const handleLogout = () => {
+  const dispatch = useDispatch();
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("auth");
+    dispatch({ type: "LOGOUT" })
     setModalVisible(false);
     navigation.navigate("login");
   };

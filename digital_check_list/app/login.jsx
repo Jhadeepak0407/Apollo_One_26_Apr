@@ -31,6 +31,8 @@ const LoginScreen = () => {
   const dispatch = useDispatch();
   const { loading, error, user } = useSelector((state) => state.login);
 
+  const AuthData = useSelector((state) => state.login);
+
   const handleLogin = () => {
     if (!validateForm()) return;
 
@@ -49,13 +51,15 @@ const LoginScreen = () => {
 
 
   useEffect(() => {
-
-    console.log("gdhgf => ", user);
-    if (user.token) {
+    if (user?.token) {
       router.replace("/applist")
-
     }
-  }, [user.token])
+    console.log(user)
+  }, [user?.token])
+
+  useEffect(() => {
+    console.log("AuthData => ", AuthData?.user);
+  }, [AuthData])
 
   const validateForm = () => {
     let isValid = true;

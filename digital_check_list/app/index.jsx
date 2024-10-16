@@ -8,12 +8,12 @@ export default function App() {
   useEffect(() => {
     (async function () {
       try {
-        let response = await AsyncStorage.getItem("user_info");
+        let response = await AsyncStorage.getItem("auth");
+        // console.log(" LocalStorage at Index Page => ", response);
         response = JSON.parse(response);
         const tokenNo = response?.token || "";
         if (tokenNo.length > 10) {
-          await AsyncStorage.setItem("user_info", JSON.stringify(response));
-          router.replace("login");
+          router.replace("applist");
         } else {
           router.replace("login");
         }
