@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Picker } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Importing FontAwesome icons
-import { useFonts, Mulish_400Regular, Mulish_600SemiBold } from '@expo-google-fonts/mulish'; // Importing Mulish font
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { useFonts, Mulish_400Regular, Mulish_600SemiBold } from '@expo-google-fonts/mulish';
 import { Stack } from 'expo-router';
 import axios from 'axios';
 
@@ -13,40 +13,13 @@ const colorPalette = {
   textDark: '#212529',
   textLight: '#FFFFFF',
   border: '#CED4DA',
-};      
-
-const renderControl = (field, onChange) => {
-  switch (field.fieldType) {
-    case 'Textbox':
-      return (
-        <TextInput
-          style={styles.input}
-          placeholder={`Enter ${field.fieldName}`} 
-          onChangeText={text => onChange(field.fieldId, text)}
-        />
-      );
-    case 'Dropdown':
-      return (
-        <Picker
-          style={styles.input}
-          onValueChange={value => onChange(field.fieldId, value)} 
-        >
-          <Picker.Item label={`Select ${field.fieldName}`} value="" />
-          {field.controlvalues && field.controlvalues.map(option => (
-            <Picker.Item key={option.value} label={option.title} value={option.value} />
-          ))}
-        </Picker>
-      );
-    default:
-      return <Text>No control available</Text>; // Fallback
-  }
 };
 
 const MainPage = () => {
-  const [dataa, setData] = useState({ pointsToCheck: [] }); // Initialize with empty pointsToCheck
-  const [loading, setLoading] = useState(true); // State to manage loading status
-  const [error, setError] = useState(null); // State to manage error
-  const [formValues, setFormValues] = useState({}); // State to manage form input values
+  const [dataa, setData] = useState([]); // Initialize with empty array
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [formValues, setFormValues] = useState({});
 
   let [fontsLoaded] = useFonts({
     Mulish_400Regular,
@@ -63,7 +36,7 @@ const MainPage = () => {
           throw new Error('Fetched data is empty or invalid.');
         }
 
-        console.log('Fetched Main Data:', fetchedData); 
+        console.log('Fetched Main Data:', fetchedData);
 
         const promises = fetchedData.map(async (item) => {
           const { fieldId } = item;
@@ -75,16 +48,16 @@ const MainPage = () => {
 
           const subResponse = await axios.get(`http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Main_sub?Fieldid=102&IsMainHeader=1&Action=TextBox`);
           const subData = subResponse.data;
-
+          console.log('Fetched Sub Data:', subData);
           return { ...item, subData };
         });
 
         const allResponses = await Promise.all(promises);
-
         const filteredResponses = allResponses.filter(response => response !== null);
         console.log('All Merged Responses:', filteredResponses);
 
-        setData({ pointsToCheck: filteredResponses });
+        setData(filteredResponses);
+        
       } catch (error) {
         console.error('Error fetching data:', error.message);
         setError('Error fetching data.');
@@ -96,13 +69,6 @@ const MainPage = () => {
     fetchData();
   }, []);
 
-  const handleInputChange = (fieldId, value) => {
-    setFormValues(prevValues => ({
-      ...prevValues,
-      [fieldId]: value,
-    }));
-  };
-
   const handleDraftSave = () => {
     console.log('Draft saved:', formValues);
   };
@@ -112,25 +78,34 @@ const MainPage = () => {
   };
 
   if (loading) {
-    return <Text>Loading...</Text>; 
+    return <Text>Loading...</Text>;
   }
 
   if (error) {
-    return <Text>Error: {error}</Text>; 
+    return <Text>Error: {error}</Text>;
   }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Stack.Screen options={{ title: "Edit Checklist", statusBarColor: "black" }} />
 
-      <View style={styles.taskDetailsContainer}>
-        {dataa.pointsToCheck.map((point) => (
-          <View key={point.fieldId} style={styles.fieldContainer}>
-            <Text style={styles.taskDetail}>{point.fieldName}</Text>
-            {point.subData && point.subData.map(field => renderControl(field, handleInputChange))} {/* Loop through subData */}
-          </View>
-        ))}
-      </View>
+      {/* Rendering the fetched data */}
+      {dataa.map((item, index) => (
+        <View key={index} style={styles.taskDetailsContainer}>
+          {/* <Text style={styles.taskDetail}>Field Name: {item.fieldName}</Text> */}
+          {/* Rendering subData */}
+          {item.subData.map((subItem, subIndex) => (
+            <View key={subIndex} style={styles.fieldContainer}>
+              <Text style={styles.taskDetail}>{subItem.fieldName}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={subItem.fieldName}
+                onChangeText={(value) => setFormValues({ ...formValues, [subItem.fieldName]: value })}
+              />
+            </View>
+          ))}
+        </View>
+      ))}
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={handleDraftSave}>
