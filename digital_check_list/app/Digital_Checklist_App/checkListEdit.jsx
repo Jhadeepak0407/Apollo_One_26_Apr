@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useFonts, Mulish_400Regular, Mulish_600SemiBold } from '@expo-google-fonts/mulish';
@@ -6,6 +6,7 @@ import { Stack } from 'expo-router';
 import { fetchHeaderData, fetchSubHeaderData, fetchQuestions } from '../../services/Utils/getCheckListData';
 import RadioButtonGroup from '../../projects/digital_check_list/components/radioButtonComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { faL } from '@fortawesome/free-solid-svg-icons';
 
 const MainPage = () => {
   const [headerData, setHeaderData] = useState([]);
@@ -14,6 +15,7 @@ const MainPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formValues, setFormValues] = useState({});
+  const counter = useRef(false);
 
   let [fontsLoaded] = useFonts({
     Mulish_400Regular,
@@ -21,10 +23,18 @@ const MainPage = () => {
   });
 
   useEffect(() => {
-    // Fetching data on component mount
-    fetchHeaderData(setHeaderData, setLoading, setError);
-    fetchSubHeaderData(setSubHeaderData, setLoading, setError);
-    fetchQuestions(setQuestionsData, setLoading, setError);
+    if (counter.current === false) {
+      // Fetching data on component mount
+      if (headerData.length === 0) {
+        const data = fetchHeaderData(setHeaderData, setLoading, setError);
+        // setHeaderData(data)
+        fetchSubHeaderData(setSubHeaderData, setLoading, setError);
+        fetchQuestions(setQuestionsData, setLoading, setError);
+        // console.log("CALLING AGAIN")
+        setLoading(false);
+        counter.current = true;
+      }
+    }
   }, []);
 
   const handleDraftSave = () => {
@@ -43,12 +53,25 @@ const MainPage = () => {
     return <Text>Error: {error}</Text>;
   }
 
+
+  function selectionHandler(value, key, setQuestionsData) {
+    setQuestionsData(prev => {
+      const obj = prev.find(item => item.fieldId === key);
+      obj.selection = value;
+      console.log("THE OBJ => ", obj);
+      return [...prev.filter(item => item.fieldId !== key), obj]
+    })
+  }
+
+  useEffect(() => {
+    questionsData.forEach((e) => {
+      console.log(e.fieldId, " => ", e.selection)
+    })
+  }, [questionsData])
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Stack.Screen options={{ title: "Edit Checklist", statusBarColor: "black" }} />
-
-
-
       {loading ? (
         <ActivityIndicator size="large" color="#545454" />
       ) : (<>
@@ -57,7 +80,7 @@ const MainPage = () => {
         </View>
 
         <View style={styles.sectionContainer}>
-          {subHeaderData.map((item, index) => (
+          {subHeaderData?.map((item, index) => (
             <View key={index} style={styles.fieldContainer}>
               <Text style={styles.taskDetail}>{item.fieldName}</Text>
               <TextInput
@@ -70,13 +93,13 @@ const MainPage = () => {
         </View>
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Points to check</Text>
-          {questionsData.map((questionItem, questionIndex) => {
-            // Log the questionItem to the console
-            console.log(questionsData);
-            console.log('Question Item:', questionItem);
+          {questionsData?.sort((a, b) => Number(b.fieldId) - Number(a.fieldId))?.map((questionItem) => {
+            // console.log(questionsData);
+            // if (questionIndex === 0)
+            //   console.log('Question Item:', questionItem);
 
             return (
-              <View key={questionIndex} style={styles.questionContainer}>
+              <View key={questionItem.fieldId} style={styles.questionContainer}>
                 <Text style={styles.taskDetail}>{questionItem.fieldName}</Text>
 
                 {/* Rendering Radio Button Group */}
@@ -85,10 +108,12 @@ const MainPage = () => {
                     label: option.trim(),
                     value: index,
                   }))}
-                  onValueChange={(value) => {
-                    console.log(`Selected value for ${questionItem.questionText}:`, value);
-                    setFormValues({ ...formValues, [questionItem.questionText]: value });
-                  }}
+                  selected={questionItem?.selection}
+                  // onValueChange={(value) => {
+                  //   console.log(`Selected value for ${questionItem.questionText}:`, value);
+                  //   setFormValues({ ...formValues, [questionItem.questionText]: value });
+                  // }}
+                  setSelectedValue={(e) => selectionHandler(e, questionItem.fieldId, setQuestionsData)}
                   nARemarks={formValues[questionItem.questionText]} // Pass any necessary props
                 />
               </View>
