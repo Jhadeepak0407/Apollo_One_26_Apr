@@ -18,7 +18,7 @@ function DatePickerView({
   return (
     <View style={styles.container}>
       <View style={styles.centeredView}>
-        <Modal animationType="none" transparent={true} visible={showDate}>
+        <Modal animationType="slide" transparent={true} visible={showDate}>
           <View style={styles.centeredView}>
             <View style={styles.modalView}>
               <View style={{ width: Dimensions.get("window").width - 20 }}>

@@ -1,49 +1,47 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 
 const FilterModal = ({ visible, onClose, onApplyFilter }) => {
-  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const handleApply = () => {
-    onApplyFilter(selectedStatus);
+  const applyFilter = () => {
+   
+    const filterValue = statusFilter === "All" ? "" : statusFilter;
+    onApplyFilter(filterValue);
+    onClose();
   };
 
   return (
-    <Modal
-      animationType="slide"
-      transparent
-      visible={visible}
-      onRequestClose={onClose}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Filter Menu</Text>
+    <Modal visible={visible} transparent animationType="slide">
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Filter Options</Text>
 
-          <TouchableOpacity
-            onPress={() => setSelectedStatus('completed')}
-            style={[
-              styles.option,
-              selectedStatus === 'completed' && styles.selectedOption,
-            ]}
-          >
-            <Text style={styles.optionText}>Completed</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedStatus('pending')}
-            style={[
-              styles.option,
-              selectedStatus === 'pending' && styles.selectedOption,
-            ]}
-          >
-            <Text style={styles.optionText}>Pending</Text>
-          </TouchableOpacity>
+          <Text style={styles.label}>Status</Text>
+          <View style={styles.listContainer}>
+            {["All", "Completed", "Pending", "Drafted"].map((status) => (
+              <TouchableOpacity
+                key={status}
+                style={[
+                  styles.listItem,
+                  statusFilter === status && styles.selectedItem,
+                ]}
+                onPress={() => setStatusFilter(status)}
+              >
+                <Text style={styles.listItemText}>{status}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-          <View style={styles.buttonRow}>
-            <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+          <View style={styles.modalButtons}>
+            <TouchableOpacity onPress={applyFilter} style={styles.modalButton}>
+              <FontAwesome name="check" size={20} color="#A490F6" />
+              <Text style={styles.buttonText}>Apply</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleApply} style={styles.applyButton}>
-              <Text style={styles.applyButtonText}>Apply</Text>
+            <TouchableOpacity onPress={onClose} style={styles.modalButton}>
+              <FontAwesome name="times" size={20} color="#A490F6" />
+              <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -60,49 +58,65 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
-    width: '80%',
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "80%",
     padding: 20,
-    elevation: 5,
+    backgroundColor: "#fff",
+    fontFamily: "Mullish",
+    borderRadius: 8,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: 20,
+    marginBottom: 16,
+    color: "#999",
   },
-  option: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-  },
-  selectedOption: {
-    backgroundColor: '#e0e0e0',
-  },
-  optionText: {
+  buttonText: {
+    marginLeft: 6,
     fontSize: 16,
+    color: "#A490F6",
+    
+    fontFamily: "Mullish",
   },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 20,
   },
-  cancelButton: {
+  modalButton: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  listContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 16,
+    // color: 'darkgrey',
+    fontFamily: "Mullish",
+    marginBottom: 8,
+  },
+  listItem: {
     padding: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
+    fontFamily: "Mullish",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: "#fff",
   },
-  cancelButtonText: {
-    color: '#999',
+  selectedItem: {
+    borderColor: "#A490F6",
+    
+    backgroundColor: "#D1C4E9"
   },
-  applyButton: {
-    padding: 10,
-    backgroundColor: '#A490F6',
-    borderRadius: 5,
-  },
-  applyButtonText: {
-    color: '#fff',
+  listItemText: {
+    color: "#A490F6",
   },
 });
 
-export default FilterModal;
+export default React.memo(FilterModal);

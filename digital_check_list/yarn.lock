@@ -871,6 +871,11 @@
   dependencies:
     "@types/hammerjs" "^2.0.36"
 
+"@expo-google-fonts/mulish@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@expo-google-fonts/mulish/-/mulish-0.2.3.tgz#5f1bd2bd199ed527ca2300e10c5e66ae906b0354"
+  integrity sha512-PACg8uKR0s6fq5kqBE4yT/pWZ+ltdtlJIn0yCzQfzvzYkQCaxjK4v3ZN6hkZVGx8a52ajlDfwRru3QrYv+dV/w==
+
 "@expo/apple-utils@1.7.1":
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/@expo/apple-utils/-/apple-utils-1.7.1.tgz#b072cc95ace4fed734d088740eff9945e8f4d22e"
@@ -5007,7 +5012,7 @@ expo-modules-core@1.12.25:
   dependencies:
     invariant "^2.2.4"
 
-expo-router@~3.5.23:
+expo-router@^3.5.23:
   version "3.5.23"
   resolved "https://registry.yarnpkg.com/expo-router/-/expo-router-3.5.23.tgz#da038e28c64cb69f19d046d7c651c389c5207a3e"
   integrity sha512-Re2kYcxov67hWrcjuu0+3ovsLxYn79PuX6hgtYN20MgigY5ttX79KOIBEVGTO3F3y9dxSrGHyy5Z14BcO+usGQ==
