@@ -26,7 +26,7 @@ const menuItems = [
 ];
 
 const HomeScreen = () => {
-  const [locations, setLocations] = useState([]);
+  const [locations, setLocations] = useState([null]);
   const [location, setLocation] = useState(null);
   const [animatedValues] = useState(menuItems.map(() => new Animated.Value(0)));
   const [modalVisible, setModalVisible] = useState(false);
@@ -43,9 +43,11 @@ const HomeScreen = () => {
             label: loc.location_Display_Name,
           }));
           setLocations(fetchedLocations);
-          setLocation(fetchedLocations[0]?.value);
+        //////  setLocation(fetchedLocations[0]?.value);
         });
-    } catch (error) {
+    } catch (error)
+    
+    {
 
       console.log("ERROR IN CALLING API at applist page", error);
     }
@@ -79,36 +81,52 @@ const HomeScreen = () => {
         outputRange: [0, 1],
       }),
     };
-
+ 
     const navigateToPage = () => {
-      switch (item.name) {
-        case "Digital CheckList":
-          navigation.push('CounterB');
-          break;
-        case "OT Booking":
-          navigation.push('otBooking');
-          break;
-        case "Digital Pass":
-          navigation.push('digitalPass');
-          break;
-        case "Doctor HandsOff":
-          navigation.push('doctorHandOff');
-          break;
-        case "Credential & Privilege":
-          navigation.push('credentialPrivilege');
-          break;
-        case "Discharge Tracker":
-          navigation.push('dischargeTracker');
-          break;
-        default:
-          console.log("No page found for this item");
+      if (!location) {
+        // Show alert if location is not selected
+        alert('Please select a location before proceeding.');
+      }
+      else {
+        // Navigate to the selected page if location is selected
+        switch (item.name) {
+          case "Digital CheckList":
+            navigation.navigate('Digital_Checklist_App/TriggeredChecklist');
+            break;
+          case "OT Booking":
+            navigation.navigate('otBooking');
+            break;
+          case "Digital Pass":
+            navigation.navigate('digitalPass');
+            break;
+          case "Doctor HandsOff":
+            navigation.navigate('doctorHandOff');
+            break;
+          case "Credential & Privilege":
+            navigation.navigate('credentialPrivilege');
+            break;
+          case "Discharge Tracker":
+            navigation.navigate('dischargeTracker');
+            break;
+          default:
+            if (item.route) {
+              ////console.log("URL",item.route);
+              navigation.navigate(item.route);
+            } else {
+              console.log("No page found for this item");
+            }
+        }
       }
     };
     return (
       <Animated.View style={[styles.menuItem, animatedStyle]}>
         <TouchableOpacity
           style={[styles.menuButton, { backgroundColor: item.color }]}
-          onPress={() => navigation.navigate(item.route)}
+          onPress={() => {
+          ////  navigation.navigate(item.route);
+            navigateToPage();
+          }}
+       /////onPress={navigateToPage}
         >
           <MaterialIcons name={item.icon} size={40} color="white" />
         </TouchableOpacity>
