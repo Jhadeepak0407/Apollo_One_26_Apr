@@ -139,8 +139,6 @@ const App = () => {
   const [openChecklistDropdown, setOpenChecklistDropdown] = useState(false);
   const [fromDate, setFromDate] = useState(new Date());
   const [toDate, setToDate] = useState(new Date());
-  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
-  const [showToDatePicker, setShowToDatePicker] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [filterStatus, setFilterStatus] = useState(null); 
 const [isFilterModalVisible, setIsFilterModalVisible] = useState(false); 
@@ -150,24 +148,33 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const memoizedCheckLists = useMemo(() => checkLists, [checkLists]);
 
   const filteredMenu = useMemo(() => {
-    if (!filterStatus) return menu; 
-    return menu.filter((item) => item.status === filterStatus); 
+    if (!filterStatus) return menu;
+    return menu.filter((item) => item.status === filterStatus);
   }, [menu, filterStatus]);
- 
+
   useEffect(() => {
     fetchDepartments(locationId).then((data) => {
       if (Array.isArray(data)) {
-        setDepartments(data.map((dept) => ({ label: dept.departmentName, value: dept.departmentId })));
+        setDepartments(
+          data.map((dept) => ({
+            label: dept.departmentName,
+            value: dept.departmentId,
+          }))
+        );
       }
     });
   }, [locationId]);
 
-  
   useEffect(() => {
     if (selectedDepartment) {
       fetchCheckLists(locationId, selectedDepartment).then((data) => {
         if (Array.isArray(data)) {
-          setCheckLists(data.map((list) => ({ label: list.checklist_name, value: list.checklist_id })));
+          setCheckLists(
+            data.map((list) => ({
+              label: list.checklist_name,
+              value: list.checklist_id,
+            }))
+          );
         } else {
           setCheckLists([]);
         }
@@ -177,40 +184,44 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
   const handleSearch = async () => {
     if (selectedCheckList && fromDate && toDate) {
-      const menuDetails = await fetchMenuDetails(selectedCheckList, fromDate, toDate);
+      const menuDetails = await fetchMenuDetails(
+        selectedCheckList,
+        fromDate,
+        toDate
+      );
       // console.log(fromDate)
       // console.log(toDate)
       if (menuDetails && menuDetails.length > 0) {
         setMenu(menuDetails);
-        setIsMenuVisible(true); 
+        setIsMenuVisible(true);
       } else {
         setMenu([]);
-        setIsMenuVisible(false); 
+        setIsMenuVisible(false);
       }
     } else {
       alert('Please select a checklist and valid date range.');
     }
   };
+
   const handleClear = useCallback(() => {
     Alert.alert(
-      'Clear Selection',
-      'Are you sure you want to clear the selections?',
+      "Clear Selection",
+      "Are you sure you want to clear the selections?",
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'OK',
+          text: "OK",
           onPress: () => {
-            
-            setSelectedDepartment(''); 
-            setSelectedCheckList(null); 
+            setSelectedDepartment("");
+            setSelectedCheckList(null);
             setFromDate(new Date());
             setToDate(new Date());
-            setMenu([]); 
-            setIsMenuVisible(false); 
+            setMenu([]);
+            setIsMenuVisible(false);
           },
         },
       ],
-      { cancelable: true } 
+      { cancelable: true }
     );
   }, []);
 
@@ -279,8 +290,8 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
 
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
     >
   
   <Text style={styles.label}>Department</Text>
@@ -291,16 +302,17 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
         setOpen={setOpenDeptDropdown}
         setValue={setSelectedDepartment}
         placeholder="Select a department"
-        searchable
         searchPlaceholder="Search departments..."
-        searchTextInputStyle={styles.placeholderStyle}
-        searchContainerStyle={styles.placeholderStyle}
-        style={styles.dropdown}
-        dropDownContainerStyle={styles.dropdownContainer}
       />
+        <CustomAlert
+      visible={alertVisible}
+      title={alertTitle}
+      message={alertMessage}
+      onClose={() => setAlertVisible(false)}
+    />
 
       <Text style={styles.label}>Checklist</Text>
-      <DropDownPicker
+      <CustomDropdown
         open={openChecklistDropdown}
         value={selectedCheckList}
         items={memoizedCheckLists}
@@ -308,25 +320,19 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
         setValue={setSelectedCheckList}
         placeholder="Select a checklist"
         searchPlaceholder="Search checklists..."
-       
         style={styles.dropdown}
         dropDownContainerStyle={styles.dropdownContainer}
       />
 
       <View style={styles.dateRow}>
         <View style={styles.datePickerContainer}>
-         
-          
-        <CustomDatePicker1
+          <CustomDatePicker
             fromDate={fromDate}
             toDate={toDate}
             setFromDate={setFromDate}
             setToDate={setToDate}
           />
-          
         </View>
-
-      
       </View>
 
       {isMenuVisible ? (
@@ -334,13 +340,14 @@ const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
           data={filteredMenu}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => <MenuItem item={item} />}
-          ListEmptyComponent={<Text style={styles.noDataText}>No data available</Text>}
+          ListEmptyComponent={
+            <Text style={styles.noDataText}>No data available</Text>
+          }
           nestedScrollEnabled
-          style={styles.menuList} 
+          style={styles.menuList}
         />
       ) : (
         <View style={styles.placeholder}>
-          {/* <Text style={styles.placeholderText}>Please click search to view results.</Text> */}
           <Text style={styles.placeholderText}></Text>
         </View>
       )}
@@ -406,32 +413,37 @@ const getStatusColor = (status) => {
   }
 };
 
- const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   label: {
     fontSize: 16,
     // color: 'darkgrey',
-    fontFamily: 'Mulish_400Regular',
+    fontFamily: "Mullish",
     marginBottom: 8,
+    color:"darkblack",
+    fontWeight:"800"
+    
   },
   dropdown: {
-    borderColor: '#A490F6',
+    borderColor: "#A490F6",
     marginBottom: 16,
     zIndex: 15, 
     borderBottomColor:'#A490F6',
   },
   dropdownContainer: {
-    borderColor: '#A490F6',
+    borderColor: "#A490F6",
     borderWidth: 1,
     maxHeight: 500,
-  
   },
   dateRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
@@ -450,15 +462,12 @@ const getStatusColor = (status) => {
   menuList: {
     flex: 1,
     marginTop: 16,
-    borderColor:'#A490F6',
+    borderColor: "#A490F6",
   },
   placeholder: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-   
-  
-   
+    justifyContent: "center",
+    alignItems: "center",
   },
   
   placeholderStyle:{
@@ -605,9 +614,5 @@ const getStatusColor = (status) => {
     color: '#A490F6',
   },
 });
-
-
-
-
 
 export default App;
