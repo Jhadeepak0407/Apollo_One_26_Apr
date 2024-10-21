@@ -3,9 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-nativ
 
 const RadioButtonGroup = ({ options, onValueChange, nARemarks }) => {
     const [selectedValue, setSelectedValue] = useState(null);
-    const [naRemarks, setNaRemarks] = useState(''); // Initialize as an empty string
+    const [naRemarks, setNaRemarks] = useState('');
 
-    // Update naRemarks when nARemarks changes
     useEffect(() => {
         setNaRemarks(nARemarks);
     }, [nARemarks]);
@@ -20,25 +19,15 @@ const RadioButtonGroup = ({ options, onValueChange, nARemarks }) => {
             {options.map((option) => (
                 <TouchableOpacity
                     key={option.value}
-                    style={[
-                        styles.radioButtonContainer,
-                        selectedValue === option.value && styles.activeButton,
-                    ]}
+                    style={[styles.radioButtonContainer, selectedValue === option.value && styles.activeButton]}
                     onPress={() => handlePress(option.value)}
                 >
-                    <Text
-                        style={[
-                            styles.radioButtonLabel,
-                            selectedValue === option.value && styles.activeLabel,
-                        ]}
-                    >
+                    <Text style={[styles.radioButtonLabel, selectedValue === option.value && styles.activeLabel]}>
                         {option.label}
                     </Text>
                 </TouchableOpacity>
             ))}
-
-            {/* TextInput for "n/a" option */}
-            {selectedValue === 2 && ( // Assuming 2 is the value for "n/a"
+            {selectedValue === 2 && ( // Assuming 2 is for "n/a"
                 <TextInput
                     style={styles.textInput}
                     placeholder="Please provide details..."
@@ -49,9 +38,6 @@ const RadioButtonGroup = ({ options, onValueChange, nARemarks }) => {
         </View>
     );
 };
-
-
-
 
 const styles = StyleSheet.create({
     radioGroup: {

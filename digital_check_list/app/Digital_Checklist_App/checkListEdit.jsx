@@ -1,22 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useFonts, Mulish_400Regular, Mulish_600SemiBold } from '@expo-google-fonts/mulish';
 import { Stack } from 'expo-router';
-import axios from 'axios';
-
-const colorPalette = {
-  primary: '#0056B3',
-  secondary: '#F9F9F9',
-  accent: '#FF4C00',
-  success: '#28A745',
-  textDark: '#212529',
-  textLight: '#FFFFFF',
-  border: '#CED4DA',
-};
+import { fetchHeaderData, fetchSubHeaderData, fetchQuestions } from '../../services/Utils/getCheckListData';
+import RadioButtonGroup from '../../projects/digital_check_list/components/radioButtonComponent';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MainPage = () => {
-  const [dataa, setData] = useState([]); // Initialize with empty array
+  const [headerData, setHeaderData] = useState([]);
+  const [subHeaderData, setSubHeaderData] = useState([]);
+  const [questionsData, setQuestionsData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formValues, setFormValues] = useState({});
@@ -27,46 +21,10 @@ const MainPage = () => {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains?taskid=16`);
-        const fetchedData = response.data;
-
-        if (!fetchedData || fetchedData.length === 0) {
-          throw new Error('Fetched data is empty or invalid.');
-        }
-
-        console.log('Fetched Main Data:', fetchedData);
-
-        const promises = fetchedData.map(async (item) => {
-          const { fieldId } = item;
-
-          if (!fieldId) {
-            console.warn(`FieldId is missing for item: ${JSON.stringify(item)}`);
-            return null;
-          }
-
-          const subResponse = await axios.get(`http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Main_sub?Fieldid=102&IsMainHeader=1&Action=TextBox`);
-          const subData = subResponse.data;
-          console.log('Fetched Sub Data:', subData);
-          return { ...item, subData };
-        });
-
-        const allResponses = await Promise.all(promises);
-        const filteredResponses = allResponses.filter(response => response !== null);
-        console.log('All Merged Responses:', filteredResponses);
-
-        setData(filteredResponses);
-        
-      } catch (error) {
-        console.error('Error fetching data:', error.message);
-        setError('Error fetching data.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    // Fetching data on component mount
+    fetchHeaderData(setHeaderData, setLoading, setError);
+    fetchSubHeaderData(setSubHeaderData, setLoading, setError);
+    fetchQuestions(setQuestionsData, setLoading, setError);
   }, []);
 
   const handleDraftSave = () => {
@@ -77,9 +35,9 @@ const MainPage = () => {
     console.log('Final saved:', formValues);
   };
 
-  if (loading) {
-    return <Text>Loading...</Text>;
-  }
+  // if (loading) {
+  //   return <Text>Loading...</Text>;
+  // }
 
   if (error) {
     return <Text>Error: {error}</Text>;
@@ -89,46 +47,91 @@ const MainPage = () => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Stack.Screen options={{ title: "Edit Checklist", statusBarColor: "black" }} />
 
-      {/* Rendering the fetched data */}
-      {dataa.map((item, index) => (
-        <View key={index} style={styles.taskDetailsContainer}>
-          {/* <Text style={styles.taskDetail}>Field Name: {item.fieldName}</Text> */}
-          {/* Rendering subData */}
-          {item.subData.map((subItem, subIndex) => (
-            <View key={subIndex} style={styles.fieldContainer}>
-              <Text style={styles.taskDetail}>{subItem.fieldName}</Text>
+
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#545454" />
+      ) : (<>
+        <View style={styles.headerContainer}>
+          <Text style={styles.mainHeader}>Daily Discharge Room Checklist</Text>
+        </View>
+
+        <View style={styles.sectionContainer}>
+          {subHeaderData.map((item, index) => (
+            <View key={index} style={styles.fieldContainer}>
+              <Text style={styles.taskDetail}>{item.fieldName}</Text>
               <TextInput
                 style={styles.input}
-                placeholder={subItem.fieldName}
-                onChangeText={(value) => setFormValues({ ...formValues, [subItem.fieldName]: value })}
+                placeholder={item.fieldName}
+                onChangeText={(value) => setFormValues({ ...formValues, [item.fieldName]: value })}
               />
             </View>
           ))}
         </View>
-      ))}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Points to check</Text>
+          {questionsData.map((questionItem, questionIndex) => {
+            // Log the questionItem to the console
+            console.log(questionsData);
+            console.log('Question Item:', questionItem);
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleDraftSave}>
-          <Icon name="save" size={20} color="#fff" />
-          <Text style={styles.buttonText}>Draft Save</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.successButton]} onPress={handleFinalSave}>
-          <Icon name="check-circle" size={20} color="#fff" />
-          <Text style={styles.buttonText}>Final Save</Text>
-        </TouchableOpacity>
-      </View>
+            return (
+              <View key={questionIndex} style={styles.questionContainer}>
+                <Text style={styles.taskDetail}>{questionItem.fieldName}</Text>
+
+                {/* Rendering Radio Button Group */}
+                <RadioButtonGroup
+                  options={questionItem.checkBoxFieldName.split(',').map((option, index) => ({
+                    label: option.trim(),
+                    value: index,
+                  }))}
+                  onValueChange={(value) => {
+                    console.log(`Selected value for ${questionItem.questionText}:`, value);
+                    setFormValues({ ...formValues, [questionItem.questionText]: value });
+                  }}
+                  nARemarks={formValues[questionItem.questionText]} // Pass any necessary props
+                />
+              </View>
+            );
+          })}
+
+        </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={handleDraftSave}>
+            <Icon name="save" size={20} color="#fff" />
+            <Text style={styles.buttonText}>Draft Save</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.successButton]} onPress={handleFinalSave}>
+            <Icon name="check-circle" size={20} color="#fff" />
+            <Text style={styles.buttonText}>Final Save</Text>
+          </TouchableOpacity>
+        </View>
+      </>
+
+      )}
+
+
+
+
+
     </ScrollView>
   );
 };
 
+// Styles for the component
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 15,
-    backgroundColor: colorPalette.secondary,
+    backgroundColor: '#F9F9F9',
   },
-  taskDetailsContainer: {
-    padding: 10,
+  sectionContainer: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Mulish_600SemiBold',
+    marginBottom: 10,
   },
   fieldContainer: {
     marginVertical: 10,
@@ -139,7 +142,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    borderColor: colorPalette.border,
+    borderColor: '#CED4DA',
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
@@ -154,15 +157,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    backgroundColor: colorPalette.accent,
+    backgroundColor: '#FF4C00',
     borderRadius: 5,
+    marginBottom: 50
   },
   successButton: {
-    backgroundColor: colorPalette.success,
+    backgroundColor: '#28A745',
   },
   buttonText: {
     color: '#fff',
     marginLeft: 10,
+  },
+  questionContainer: {
+    marginVertical: 10,
+    padding: 10,
+    backgroundColor: '#E9ECEF',
+    borderRadius: 5,
+  },
+  headerContainer: {
+    backgroundColor: '#cce7ff', // Light blue color
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center', // Centers the content horizontally
+    marginVertical: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5, // Shadow effect for Android
+    margin: 10
+  },
+  mainHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333', // Darker text color for better readability
+    textAlign: 'center', // Center the text
+    fontFamily: 'Mulish_400Regular',
+
   },
 });
 
