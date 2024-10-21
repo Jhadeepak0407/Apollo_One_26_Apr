@@ -30,6 +30,7 @@ const HomeScreen = () => {
   const [location, setLocation] = useState(null);
   const [animatedValues] = useState(menuItems.map(() => new Animated.Value(0)));
   const [modalVisible, setModalVisible] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
   const navigation = useRouter();
 
   useEffect(() => {
@@ -85,7 +86,8 @@ const HomeScreen = () => {
     const navigateToPage = () => {
       if (!location) {
         // Show alert if location is not selected
-        alert('Please select a location before proceeding.');
+       //// alert('Please select a location before proceeding.');
+       setAlertVisible(true);
       }
       else {
         // Navigate to the selected page if location is selected
@@ -207,6 +209,26 @@ const HomeScreen = () => {
           </View>
         </View>
       </Modal>
+         {/* Alert Modal for Location Selection */}
+         <Modal
+        transparent={true}
+        visible={alertVisible}
+        animationType="slide"
+        onRequestClose={() => setAlertVisible(false)}
+      >
+        <View style={styles.alertContainer}>
+          <View style={styles.alertContent}>
+            <Text style={styles.alertTitle}>Location Required</Text>
+            <Text style={styles.alertMessage}>Please select a location before proceeding.</Text>
+            <TouchableOpacity
+              onPress={() => setAlertVisible(false)}
+              style={styles.alertButton}
+            >
+              <Text style={styles.alertButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -319,6 +341,38 @@ const styles = StyleSheet.create({
   cancelText: {
     color: "black",
     fontSize: 16,
+  },
+  alertContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  alertContent: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    width: "80%",
+    alignItems: "center",
+  },
+  alertTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  alertMessage: {
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  alertButton: {
+    backgroundColor: "#FF5722",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  alertButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
 
