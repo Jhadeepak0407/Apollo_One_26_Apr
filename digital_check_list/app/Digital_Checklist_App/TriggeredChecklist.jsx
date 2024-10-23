@@ -30,8 +30,10 @@ const App = () => {
 
   const memoizedDepartments = useMemo(() => departments, [departments]);
   const memoizedCheckLists = useMemo(() => checkLists, [checkLists]);
-
+ 
   const filteredMenu = useMemo(() => {
+    if (!filterStatus) return menu;
+    return menu.filter((item) => item.status === filterStatus);
     if (!filterStatus) return menu;
     return menu.filter((item) => item.status === filterStatus);
   }, [menu, filterStatus]);
@@ -65,7 +67,7 @@ const App = () => {
       });
     }
   }, [selectedDepartment, locationId]);
-
+ 
   const handleSearch = async () => {
     if (selectedCheckList && fromDate && toDate) {
       const menuDetails = await fetchMenuDetails(
@@ -76,8 +78,10 @@ const App = () => {
       if (menuDetails && menuDetails.length > 0) {
         setMenu(menuDetails);
         setIsMenuVisible(true);
+        setIsMenuVisible(true);
       } else {
         setMenu([]);
+        setIsMenuVisible(false);
         setIsMenuVisible(false);
       }
     } else {
@@ -323,5 +327,31 @@ const styles = StyleSheet.create({
     color: "#999",
   },
 });
-
+ 
 export default App;
+ 
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Completed':
+      return 'green';
+    case 'Pending':
+      return 'orange';
+    case 'Drafted':
+      return 'blue';
+    default:
+      return 'grey';
+  }
+};
+ 
+const formatDate = (date, format) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+ 
+  switch (format) {
+    case 'YYYY-MM-dd':
+      return `${year}-${month}-${day}`;
+    default:
+      return date.toDateString();
+  }
+};

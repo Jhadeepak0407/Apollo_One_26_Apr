@@ -1,5 +1,5 @@
- import React, { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Stack, useRouter } from "expo-router";
 import {
   View,
   TextInput,
@@ -16,48 +16,52 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useDispatch, useSelector } from "react-redux";
-import {LoginRequest} from "../redux/actions/loginActions";
+import { LoginRequest } from "../redux/actions/loginActions";
 
 const logo = require("../assets/digital_check_list/images/apollo-logo.png");
 
 const LoginScreen = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("apolloadmin");
+  const [password, setPassword] = useState("apolloadmin");
   const [isPasswordVisible, setPasswordVisible] = useState(false);
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const router = useRouter();
-  
+
   const dispatch = useDispatch();
-  const { loading, error,user } = useSelector((state) => state.login);
+  const { loading, error, user } = useSelector((state) => state.login);
+
+  const AuthData = useSelector((state) => state.login);
 
   const handleLogin = () => {
     if (!validateForm()) return;
 
-    if(username==="apolloadmin" && password==="apolloadmin"){
+    if (username === "apolloadmin" && password === "apolloadmin") {
       router.replace("/applist");
-    
+
     }
     const locationid = "10701";
 
     dispatch(LoginRequest({ username, password, locationid }));
     //dispatch({
-      //type: "LOGIN_REQUEST",
-      //payload: { username, password, locationid },
-   // });
+    //type: "LOGIN_REQUEST",
+    //payload: { username, password, locationid },
+    // });
   };
 
 
-useEffect(()=>{
+  useEffect(() => {
+    if (user?.token) {
+      router.replace("/applist")
+    }
+    console.log(user)
+  }, [user?.token])
 
-console.log("gdhgf => ",user);
-if(user.token){
-  router.replace("/applist")
+  useEffect(() => {
+    console.log("AuthData => ", AuthData?.user);
+  }, [AuthData])
 
-}
-},[user.token])
- 
-const validateForm = () => {
+  const validateForm = () => {
     let isValid = true;
 
     if (!username) {
@@ -89,6 +93,8 @@ const validateForm = () => {
       behavior={Platform.OS === "android" ? "padding" : "height"}
       style={styles.container}
     >
+      <Stack.Screen
+        options={{ headerShown: false }} />
       <StatusBar barStyle="light-content" backgroundColor="#2C3E50" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Image source={logo} style={styles.logo} />
