@@ -1,96 +1,16 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView, Pressable, Platform, Dimensions, Alert, FlatList } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useNavigation } from '@react-navigation/native';
- 
-const { width } = Dimensions.get('window');
- 
-const FilterModal = ({ visible, onClose, onApplyFilter }) => {
-  const [statusFilter, setStatusFilter] = useState('');
-  const applyFilter = () => {
-    onApplyFilter(statusFilter);
-    onClose();
-  };
- 
-  return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Filter Options</Text>
- 
-          <Text style={styles.label}>Status</Text>
-          <View style={styles.listContainer}>
-            {['Completed', 'Pending', 'Drafted'].map((status) => (
-              <TouchableOpacity
-                key={status}
-                style={[
-                  styles.listItem,
-                  statusFilter === status && styles.selectedItem,
-                ]}
-                onPress={() => setStatusFilter(status)}
-              >
-                <Text style={styles.listItemText}>{status}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
- 
-          <View style={styles.modalButtons}>
-            <TouchableOpacity onPress={applyFilter} style={styles.modalButton}>
-              <FontAwesome name="check" size={20} color="green" />
-              <Text style={styles.buttonText}>Apply</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onClose} style={styles.modalButton}>
-              <FontAwesome name="times" size={20} color="red" />
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-};
- 
-const fetchDepartments = async (locationId) => {
-  try {
-    const response = await fetch(`http://10.10.9.89:203/api/Users/DepartmentMasterListByLocation?locationid=${locationId}`);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching departments:', error);
-    return [];
-  }
-};
- 
-const fetchCheckLists = async (locationId, departmentId) => {
-  try {
-    const response = await fetch(`http://10.10.9.89:203/api/Users/CheckListMasterListByDepartment?locationid=${locationId}&departmentid=${departmentId}`);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching checklists:', error);
-    return [];
-  }
-};
- 
-const fetchMenuDetails = async (checklistId, fromDate, toDate) => {
-  try {
-    const formattedFromDate = formatDate(fromDate, 'YYYY-MM-dd');
-    const formattedToDate = formatDate(toDate, 'YYYY-MM-dd');
- 
-    const apiUrl = `http://10.10.9.89:203/api/Users/TaksListByCheckListID?checklistid=${checklistId}&from=${formattedFromDate}&to=${formattedToDate}`;
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching menu details:', error);
-    return [];
-  }
-};
- 
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, FlatList, SafeAreaView } from "react-native";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import CustomDatePicker from "../../projects/digital_check_list/components/getcustomdaterange";
+import FilterModal from "../../projects/digital_check_list/components/filterbox";
+import MenuItem from "../../projects/digital_check_list/components/getmenuitems";
+import CustomDropdown from "../../projects/digital_check_list/components/getdropdowndetails";
+import CustomAlert from "../../projects/digital_check_list/components/alertmessage";
+import ConfirmCustomAlert from "../../projects/digital_check_list/components/confirmalert";
+import { fetchDepartments, fetchCheckLists, fetchMenuDetails } from "../../services/triggeredchecklistapi";
+
 const App = () => {
-  const locationId = '10701';
+  const locationId = "10701";
   const [menu, setMenu] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [departments, setDepartments] = useState([]);
@@ -100,33 +20,47 @@ const App = () => {
   const [openChecklistDropdown, setOpenChecklistDropdown] = useState(false);
   const [fromDate, setFromDate] = useState(new Date());
   const [toDate, setToDate] = useState(new Date());
-  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
-  const [showToDatePicker, setShowToDatePicker] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [filterStatus, setFilterStatus] = useState(null);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
- 
+  const [alertVisible, setAlertVisible] = useState(false);  // Manages alert visibility
+  const [alertTitle, setAlertTitle] = useState("");         // Manages alert title
+  const [alertMessage, setAlertMessage] = useState(""); 
+  const [isAlertVisible, setIsAlertVisible] = useState(false);
+
   const memoizedDepartments = useMemo(() => departments, [departments]);
   const memoizedCheckLists = useMemo(() => checkLists, [checkLists]);
  
   const filteredMenu = useMemo(() => {
     if (!filterStatus) return menu;
     return menu.filter((item) => item.status === filterStatus);
+    if (!filterStatus) return menu;
+    return menu.filter((item) => item.status === filterStatus);
   }, [menu, filterStatus]);
- 
+
   useEffect(() => {
     fetchDepartments(locationId).then((data) => {
       if (Array.isArray(data)) {
-        setDepartments(data.map((dept) => ({ label: dept.departmentName, value: dept.departmentId })));
+        setDepartments(
+          data.map((dept) => ({
+            label: dept.departmentName,
+            value: dept.departmentId,
+          }))
+        );
       }
     });
   }, [locationId]);
- 
+
   useEffect(() => {
     if (selectedDepartment) {
       fetchCheckLists(locationId, selectedDepartment).then((data) => {
         if (Array.isArray(data)) {
-          setCheckLists(data.map((list) => ({ label: list.checklist_name, value: list.checklist_id })));
+          setCheckLists(
+            data.map((list) => ({
+              label: list.checklist_name,
+              value: list.checklist_id,
+            }))
+          );
         } else {
           setCheckLists([]);
         }
@@ -136,304 +70,261 @@ const App = () => {
  
   const handleSearch = async () => {
     if (selectedCheckList && fromDate && toDate) {
-      const menuDetails = await fetchMenuDetails(selectedCheckList, fromDate, toDate);
+      const menuDetails = await fetchMenuDetails(
+        selectedCheckList,
+        fromDate,
+        toDate
+      );
       if (menuDetails && menuDetails.length > 0) {
         setMenu(menuDetails);
+        setIsMenuVisible(true);
         setIsMenuVisible(true);
       } else {
         setMenu([]);
         setIsMenuVisible(false);
+        setIsMenuVisible(false);
       }
     } else {
-      alert('Please select a checklist and valid date range.');
+       // Set alert details and make it visible
+    setAlertTitle("Selection Required Fields");
+
+    setAlertMessage("Please select a checklist and valid date range.");
+    setAlertVisible(true);
     }
   };
- 
+
   const handleClear = useCallback(() => {
-    Alert.alert(
-      'Clear Selection',
-      'Are you sure you want to clear the selections?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'OK',
-          onPress: () => {
-            setSelectedDepartment('');
-            setSelectedCheckList(null);
-            setFromDate(new Date());
-            setToDate(new Date());
-            setMenu([]);
-            setIsMenuVisible(false);
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+    setIsAlertVisible(true); // Show the custom alert modal
   }, []);
- 
-  const MenuItem = React.memo(({ item }) => {
-    const navigation = useNavigation();
-    const handlePress = () => {
-      navigation.navigate('Digital_Checklist_App/checkListEdit', {
-        taskID: item.taskID,
-        ipnumber: item.ipnumber,
-        bedCode: item.bedCode,
-        ward: item.ward,
-        status: item.status,
-      });
-    };
- 
-    return (
-      <Pressable onPress={handlePress} style={({ pressed }) => [styles.menuItem, { backgroundColor: pressed ? '#f0f0f0' : '#fff' }]}>
-        <View style={styles.iconContainer}>
-          <View style={[styles.iconCircle, { backgroundColor: getStatusColor(item.status) }]}>
-            <Text style={styles.iconText}>
-              {item.status === 'Completed' ? 'C' : item.status === 'Pending' ? 'P' : item.status === 'Drafted' ? 'D' : ''}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.textGroup}>
-          <View style={styles.textRow}>
-            <Text style={styles.menuItemText}>{item.taskID}</Text>
-            <Text style={styles.menuItemText}>{item.ipnumber}</Text>
-          </View>
-          <View style={styles.textRow}>
-            <Text style={styles.menuItemText}>{item.bedCode}/{item.ward}</Text>
-          </View>
-        </View>
-      </Pressable>
-    );
-  });
- 
+
+  const handleConfirmClear = () => {
+    // Perform the clear action when "OK" is pressed
+    setSelectedDepartment("");
+    setSelectedCheckList(null);
+    setFromDate(new Date());
+    setToDate(new Date());
+    setMenu([]);
+    setIsMenuVisible(false);
+    setIsAlertVisible(false); // Hide the alert after clearing
+  };
+
+  const handleCancelClear = () => {
+    // Close the alert when "Cancel" is pressed
+    setIsAlertVisible(false);
+  };
+
+
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        <Text style={styles.label}>Department</Text>
-        <DropDownPicker
-          open={openDeptDropdown}
-          value={selectedDepartment}
-          items={memoizedDepartments}
-          setOpen={setOpenDeptDropdown}
-          setValue={setSelectedDepartment}
-          searchable={true}
-          placeholder="Select a department"
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          onOpen={() => setOpenChecklistDropdown(false)}
+    <SafeAreaView style={{ flex: 1,marginTop:35 }}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+    >
+      <Text style={styles.label}>Department</Text>
+      <CustomDropdown
+        open={openDeptDropdown}
+        value={selectedDepartment}
+        items={memoizedDepartments}
+        setOpen={setOpenDeptDropdown}
+        setValue={setSelectedDepartment}
+        placeholder="Select a department"
+        searchPlaceholder="Search departments..."
+      />
+        <CustomAlert
+      visible={alertVisible}
+      title={alertTitle}
+      message={alertMessage}
+      onClose={() => setAlertVisible(false)}
+    />
+
+      <Text style={styles.label}>Checklist</Text>
+      <CustomDropdown
+        open={openChecklistDropdown}
+        value={selectedCheckList}
+        items={memoizedCheckLists}
+        setOpen={setOpenChecklistDropdown}
+        setValue={setSelectedCheckList}
+        placeholder="Select a checklist"
+        searchPlaceholder="Search checklists..."
+      />
+
+      <View style={styles.dateRow}>
+        <View style={styles.datePickerContainer}>
+          <CustomDatePicker
+            fromDate={fromDate}
+            toDate={toDate}
+            setFromDate={setFromDate}
+            setToDate={setToDate}
+          />
+        </View>
+      </View>
+
+      {isMenuVisible ? (
+        <FlatList
+          data={filteredMenu}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={({ item }) => <MenuItem item={item} />}
+          ListEmptyComponent={
+            <Text style={styles.noDataText}>No data available</Text>
+          }
+          nestedScrollEnabled
+          style={styles.menuList}
         />
+      ) : (
+        <View style={styles.placeholder}>
+          <Text style={styles.placeholderText}></Text>
+        </View>
+      )}
+
+      <View style={styles.buttonRow}>
+     
+    <TouchableOpacity
+      onPress={() => setIsFilterModalVisible(true)}
+      style={styles.filterButton}
+    >
+      <FontAwesome name="filter" size={20} color="#A490F6" />
+      <Text style={styles.buttonText}>Filter</Text>
+    </TouchableOpacity>
  
-        <Text style={styles.label}>Check List Name</Text>
-        <DropDownPicker
-          open={openChecklistDropdown}
-          value={selectedCheckList}
-          items={memoizedCheckLists}
-          setOpen={setOpenChecklistDropdown}
-          setValue={setSelectedCheckList}
-          searchable={true}
-          placeholder="Select a checklist"
-          style={styles.dropdown}
-          dropDownContainerStyle={styles.dropdownContainer}
-          onOpen={() => setOpenDeptDropdown(false)}
-        />
- 
-        <Text style={styles.label}>From Date</Text>
-        {showFromDatePicker && (
-          <DateTimePicker value={fromDate} mode="date" display="default" onChange={(event, selectedDate) => { setShowFromDatePicker(false); selectedDate && setFromDate(selectedDate); }} />
-        )}
-        <TouchableOpacity onPress={() => setShowFromDatePicker(true)} style={styles.datePickerButton}>
-          <Text style={styles.datePickerText}>{fromDate.toDateString()}</Text>
-        </TouchableOpacity>
- 
-        <Text style={styles.label}>To Date</Text>
-        {showToDatePicker && (
-          <DateTimePicker value={toDate} mode="date" display="default" onChange={(event, selectedDate) => { setShowToDatePicker(false); selectedDate && setToDate(selectedDate); }} />
-        )}
-        <TouchableOpacity onPress={() => setShowToDatePicker(true)} style={styles.datePickerButton}>
-          <Text style={styles.datePickerText}>{toDate.toDateString()}</Text>
-        </TouchableOpacity>
- 
-        <View style={styles.buttonContainer}>
+        <View style={styles.rightButtons}>
           <TouchableOpacity onPress={handleSearch} style={styles.button}>
-            <FontAwesome name="search" size={20} color="blue" />
+            <FontAwesome name="search" size={20} color="#A490F6" />
             <Text style={styles.buttonText}>Search</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleClear} style={styles.button}>
-            <FontAwesome name="times" size={20} color="red" />
+            <FontAwesome name="times" size={20} color="#A490F6" />
             <Text style={styles.buttonText}>Clear</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setIsFilterModalVisible(true)} style={styles.button}>
-            <FontAwesome name="filter" size={20} color="green" />
-            <Text style={styles.buttonText}>Filter</Text>
-          </TouchableOpacity>
+          <ConfirmCustomAlert
+        visible={isAlertVisible}
+        title="Clear Selection"
+        message="Are you sure you want to clear the selections?"
+        onConfirm={handleConfirmClear}
+        onCancel={handleCancelClear}
+      />
         </View>
- 
-        {isMenuVisible ? (
-          <FlatList
-            data={filteredMenu}
-            keyExtractor={(item) => item.taskID.toString()}
-            renderItem={({ item }) => <MenuItem item={item} />}
-            contentContainerStyle={styles.menuContainer}
-          />
-        ) : (
-          <Text>No records available</Text>
-        )}
- 
-        <FilterModal
-          visible={isFilterModalVisible}
-          onClose={() => setIsFilterModalVisible(false)}
-          onApplyFilter={(status) => setFilterStatus(status)}
-        />
-      </ScrollView>
+      </View>
+      <FilterModal
+        visible={isFilterModalVisible}
+        onClose={() => setIsFilterModalVisible(false)}
+        onApplyFilter={(status) => {
+          setFilterStatus(status);
+          setIsFilterModalVisible(false);
+        }}
+      />
+       
+   
     </KeyboardAvoidingView>
+    </SafeAreaView>
+    
   );
 };
- 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
-  },
-  contentContainer: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: "#fff",
   },
   label: {
     fontSize: 16,
+    fontFamily: "Mullish",
     marginBottom: 8,
-    color: '#333',
+    color:"darkblack",
+    fontWeight:"800"
+    
   },
   dropdown: {
+    borderColor: "#A490F6",
     marginBottom: 16,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    zIndex: 10, // Ensure dropdown is above other components
+    zIndex: 15,
+    borderBottomColor: "#A490F6",
+    color: "black",
   },
   dropdownContainer: {
-    borderColor: '#007bff',
-    zIndex: 100, // High zIndex for dropdown container
+    borderColor: "#A490F6",
+    borderWidth: 1,
+    maxHeight: 500,
   },
-  dropdownItem: {
+  dateRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  datePickerContainer: {
+    flex: 1,
+    marginRight: 5,
+    fontFamily:"Mullish",
+    //color:'#999',
+    borderColor: "#A490F6",
+  },
+  menuList: {
+    flex: 1,
+    marginTop: 16,
+    borderColor: "#A490F6",
+  },
+  placeholder: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: "black",
+    fontFamily: "Mullish",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginVertical: 16,
+    paddingHorizontal: 10,
+  },
+  filterButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 10,
     paddingHorizontal: 15,
-    borderBottomColor: '#ddd',
-    borderBottomWidth: 1,
-  },
-  dropdownItemSelected: {
-    backgroundColor: '#e0f7ff', // light blue background for selected items
-  },
-  datePickerButton: {
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 8,
-    marginBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#f0f0f0",
   },
-  datePickerText: {
-    color: '#333',
+  filterButton1: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+   
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20,
+  
+  rightButtons: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     borderRadius: 8,
-    backgroundColor: '#fff',
+    backgroundColor: "#f0f0f0",
+    marginLeft: 10,
   },
   buttonText: {
-    marginLeft: 8,
-    color: '#333',
+    marginLeft: 6,
+    fontSize: 16,
+    color: "#A490F6",
+    fontFamily: "Mullish",
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-  },
-  modalTitle: {
-    fontSize: 20,
-    marginBottom: 16,
-    color: '#333',
-  },
-  listContainer: {
-    marginBottom: 16,
-  },
-  listItem: {
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginBottom: 8,
-    backgroundColor: '#fff',
-  },
-  selectedItem: {
-    borderColor: '#007bff',
-  },
-  listItemText: {
-    color: '#333',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  modalButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    backgroundColor: '#fff',
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginBottom: 8,
-    backgroundColor: '#fff',
-  },
-  iconContainer: {
-    marginRight: 16,
-  },
-  iconCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconText: {
-    color: '#fff',
-    fontSize: 12,
-  },
-  textGroup: {
-    flex: 1,
-  },
-  textRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  menuItemText: {
-    color: '#333',
-  },
-  menuContainer: {
-    paddingBottom: 20,
+  noDataText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#999",
   },
 });
  

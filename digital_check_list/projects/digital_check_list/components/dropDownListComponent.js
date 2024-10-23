@@ -1,28 +1,62 @@
-// import { SelectList } from 'react-native-dropdown-select-list'
+// projects/digital_check_list/components/CustomDropdown.js
 
-// const App = () => {
+import React from 'react';
+import { StyleSheet } from 'react-native';
+import { Dropdown } from 'react-native-element-dropdown';
 
-//   const [selected, setSelected] = React.useState("");
-  
-//   const data = [
-//     {key:'1',value:'Jammu & Kashmir'},
-//     {key:'2',value:'Gujrat'},
-//     {key:'3',value:'Maharashtra'},
-//     {key:'4',value:'Goa'},
-//   ];
+const CustomDropdown = ({ data, value, onChange, placeholder }) => {
+    // Transform data to match labelField and valueField requirements
+    const formattedData = data.map(item => ({
+        label: item.title.toUpperCase(), // Set label to title from controlvalues
+        value: item.value  // Set value to value from controlvalues
+    }));
 
-//   return(
-//     <SelectList 
-//       onSelect={() => alert(selected)}
-//       setSelected={setSelected} 
-//       fontFamily='lato'
-//       data={data}  
-//       arrowicon={<FontAwesome name="chevron-down" size={12} color={'black'} />} 
-//       searchicon={<FontAwesome name="search" size={12} color={'black'} />} 
-//       search={false} 
-//       boxStyles={{borderRadius:0}} //override default styles
-//       defaultOption={{ key:'1', value:'Jammu & Kashmir' }}   //default selected option
-//     />
-//   )
+    return (
+        <Dropdown
+            data={formattedData} // Use the formatted data
+            valueField="value"
+            labelField="label"
+            value={value}
+            
+            
+            searchPlaceholder="Search..."
+            onChange={onChange}
+            placeholder={placeholder}
+            style={styles.dropdown}
+            containerStyle={styles.dropdownContainer}
+            selectedTextStyle={styles.dropdownSelectedText}
+            placeholderStyle={styles.dropdownPlaceholder}
+            inputSearchStyle={styles.dropdownInputSearch}
+        />
+    );
+};
 
-// };
+const styles = StyleSheet.create({
+    dropdownContainer: {
+        marginBottom: 20,
+    },
+    dropdown: {
+        width: "100%",
+        height: 50,
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        backgroundColor: "#fff",
+    },
+    dropdownContainerStyle: {
+        maxHeight: 140,
+    },
+    dropdownSelectedText: {
+        color: "#333",
+    },
+    dropdownPlaceholder: {
+        color: "#999",
+    },
+    dropdownInputSearch: {
+        backgroundColor: "#fff",
+        color: "#333",
+    },
+});
+
+export default CustomDropdown;
