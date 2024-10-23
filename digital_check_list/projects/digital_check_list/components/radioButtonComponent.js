@@ -17,7 +17,7 @@ const RadioButtonGroup = ({ options, nARemarks, setSelectedValue, selected }) =>
                     </Text>
                 </TouchableOpacity>
             ))}
-            {selected?.toLowerCase() === "n/a" && ( // Assuming 2 is for "n/a"
+            {selected?.toLowerCase() === "na" && ( // Assuming 2 is for "n/a"
                 <TextInput
                     style={styles.textInput}
                     placeholder="Please provide details..."
