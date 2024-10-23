@@ -256,6 +256,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
     fontFamily:"Mullish",
     //color:'#999',
+    borderColor: "#A490F6",
   },
   menuList: {
     flex: 1,
