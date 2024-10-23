@@ -17,6 +17,7 @@ export const fetchHeaderData = async (setHeaderData, setLoading, setError) => {
     setError('Error fetching header data.');
   } finally {
     // setLoading(false); // Set loading to false
+    console.log("Api 1");
   }
 };
 
@@ -36,6 +37,7 @@ export const fetchSubHeaderData = async (setSubHeaderData, setLoading, setError)
     console.error('Error fetching sub-header data:', error.message);
     setError('Error fetching sub-header data.');
   } finally {
+    console.log("Api 2");
     //setLoading(false); // Set loading to false
   }
 };
@@ -56,6 +58,7 @@ export const fetchQuestions = async (setQuestionsData, setLoading, setError) => 
     console.error('Error fetching questions:', error.message);
     setError('Error fetching questions.');
   } finally {
+    console.log("API 3");
     setLoading(false); // Set loading to false
   }
 };

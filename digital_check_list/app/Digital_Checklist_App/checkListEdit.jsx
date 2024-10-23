@@ -5,13 +5,12 @@ import { useFonts, Mulish_400Regular, Mulish_600SemiBold } from '@expo-google-fo
 import { Stack } from 'expo-router';
 import { fetchHeaderData, fetchSubHeaderData, fetchQuestions } from '../../services/Utils/getCheckListData';
 import RadioButtonGroup from '../../projects/digital_check_list/components/radioButtonComponent';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { faL } from '@fortawesome/free-solid-svg-icons';
 
 const MainPage = () => {
   const [headerData, setHeaderData] = useState([]);
   const [subHeaderData, setSubHeaderData] = useState([]);
   const [questionsData, setQuestionsData] = useState([]);
+  // const [questionsData1, setQuestionsData1] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formValues, setFormValues] = useState({});
@@ -42,7 +41,7 @@ const MainPage = () => {
   };
 
   const handleFinalSave = () => {
-    console.log('Final saved:', formValues);
+    console.log('Final saved:', questionsData);
   };
 
   // if (loading) {
@@ -54,11 +53,11 @@ const MainPage = () => {
   }
 
 
-  function selectionHandler(value, key, setQuestionsData) {
+  function selectionHandler(value, key, setQuestionsData, NaText) {
     setQuestionsData(prev => {
       const obj = prev.find(item => item.fieldId === key);
       obj.selection = value;
-      console.log("THE OBJ => ", obj);
+      if(NaText) obj.natext = NaText;
       return [...prev.filter(item => item.fieldId !== key), obj]
     })
   }
@@ -70,14 +69,16 @@ const MainPage = () => {
   }, [questionsData])
 
   return (
+    <>
+     <View style={styles.headerContainer}>
+          <Text style={styles.mainHeader}>Daily Discharge Room Checklist</Text>
+        </View>
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Stack.Screen options={{ title: "Edit Checklist", statusBarColor: "black" }} />
       {loading ? (
         <ActivityIndicator size="large" color="#545454" />
       ) : (<>
-        <View style={styles.headerContainer}>
-          <Text style={styles.mainHeader}>Daily Discharge Room Checklist</Text>
-        </View>
+       
 
         <View style={styles.sectionContainer}>
           {subHeaderData?.map((item, index) => (
@@ -94,10 +95,6 @@ const MainPage = () => {
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Points to check</Text>
           {questionsData?.sort((a, b) => Number(b.fieldId) - Number(a.fieldId))?.map((questionItem) => {
-            // console.log(questionsData);
-            // if (questionIndex === 0)
-            //   console.log('Question Item:', questionItem);
-
             return (
               <View key={questionItem.fieldId} style={styles.questionContainer}>
                 <Text style={styles.taskDetail}>{questionItem.fieldName}</Text>
@@ -109,11 +106,7 @@ const MainPage = () => {
                     value: index,
                   }))}
                   selected={questionItem?.selection}
-                  // onValueChange={(value) => {
-                  //   console.log(`Selected value for ${questionItem.questionText}:`, value);
-                  //   setFormValues({ ...formValues, [questionItem.questionText]: value });
-                  // }}
-                  setSelectedValue={(e) => selectionHandler(e, questionItem.fieldId, setQuestionsData)}
+                  setSelectedValue={(e) => selectionHandler(e.label, questionItem.fieldId, setQuestionsData, e.naData)}
                   nARemarks={formValues[questionItem.questionText]} // Pass any necessary props
                 />
               </View>
@@ -121,25 +114,22 @@ const MainPage = () => {
           })}
 
         </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={handleDraftSave}>
-            <Icon name="save" size={20} color="#fff" />
-            <Text style={styles.buttonText}>Draft Save</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, styles.successButton]} onPress={handleFinalSave}>
-            <Icon name="check-circle" size={20} color="#fff" />
-            <Text style={styles.buttonText}>Final Save</Text>
-          </TouchableOpacity>
-        </View>
+        
       </>
 
       )}
-
-
-
-
-
     </ScrollView>
+    <View style={styles.buttonContainer}>
+    <TouchableOpacity style={styles.button} onPress={handleDraftSave}>
+      <Icon name="save" size={20} color="#fff" />
+      <Text style={styles.buttonText}>Draft Save</Text>
+    </TouchableOpacity>
+    <TouchableOpacity style={[styles.button, styles.successButton]} onPress={handleFinalSave}>
+      <Icon name="check-circle" size={20} color="#fff" />
+      <Text style={styles.buttonText}>Final Save</Text>
+    </TouchableOpacity>
+  </View>
+  </>
   );
 };
 
@@ -184,7 +174,7 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: '#FF4C00',
     borderRadius: 5,
-    marginBottom: 50
+    marginBottom: 20
   },
   successButton: {
     backgroundColor: '#28A745',

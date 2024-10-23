@@ -16,6 +16,7 @@ export default function App() {
           router.replace("applist");
         } else {
           router.replace("login");
+          // router.replace("Digital_Checklist_App/checkListEdit");
         }
       } catch (error) {
         router.replace("login");
