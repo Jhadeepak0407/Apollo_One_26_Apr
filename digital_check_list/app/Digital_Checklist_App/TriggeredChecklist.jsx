@@ -174,7 +174,7 @@ const App = () => {
       )}
 
       <View style={styles.buttonRow}>
-      {filteredMenu.length > 0 ? (  
+     
     <TouchableOpacity
       onPress={() => setIsFilterModalVisible(true)}
       style={styles.filterButton}
@@ -182,9 +182,7 @@ const App = () => {
       <FontAwesome name="filter" size={20} color="#A490F6" />
       <Text style={styles.buttonText}>Filter</Text>
     </TouchableOpacity>
-  ) : (
-    <View style={styles.filterButton1} />  
-  )}
+ 
         <View style={styles.rightButtons}>
           <TouchableOpacity onPress={handleSearch} style={styles.button}>
             <FontAwesome name="search" size={20} color="#A490F6" />
