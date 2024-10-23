@@ -6,6 +6,7 @@ import FilterModal from "../../projects/digital_check_list/components/filterbox"
 import MenuItem from "../../projects/digital_check_list/components/getmenuitems";
 import CustomDropdown from "../../projects/digital_check_list/components/getdropdowndetails";
 import CustomAlert from "../../projects/digital_check_list/components/alertmessage";
+import ConfirmCustomAlert from "../../projects/digital_check_list/components/confirmalert";
 import { fetchDepartments, fetchCheckLists, fetchMenuDetails } from "../../services/triggeredchecklistapi";
 
 const App = () => {
@@ -25,6 +26,7 @@ const App = () => {
   const [alertVisible, setAlertVisible] = useState(false);  // Manages alert visibility
   const [alertTitle, setAlertTitle] = useState("");         // Manages alert title
   const [alertMessage, setAlertMessage] = useState(""); 
+  const [isAlertVisible, setIsAlertVisible] = useState(false);
 
   const memoizedDepartments = useMemo(() => departments, [departments]);
   const memoizedCheckLists = useMemo(() => checkLists, [checkLists]);
@@ -88,26 +90,25 @@ const App = () => {
   };
 
   const handleClear = useCallback(() => {
-    Alert.alert(
-      "Clear Selection",
-      "Are you sure you want to clear the selections?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "OK",
-          onPress: () => {
-            setSelectedDepartment("");
-            setSelectedCheckList(null);
-            setFromDate(new Date());
-            setToDate(new Date());
-            setMenu([]);
-            setIsMenuVisible(false);
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+    setIsAlertVisible(true); // Show the custom alert modal
   }, []);
+
+  const handleConfirmClear = () => {
+    // Perform the clear action when "OK" is pressed
+    setSelectedDepartment("");
+    setSelectedCheckList(null);
+    setFromDate(new Date());
+    setToDate(new Date());
+    setMenu([]);
+    setIsMenuVisible(false);
+    setIsAlertVisible(false); // Hide the alert after clearing
+  };
+
+  const handleCancelClear = () => {
+    // Close the alert when "Cancel" is pressed
+    setIsAlertVisible(false);
+  };
+
 
   return (
     <SafeAreaView style={{ flex: 1,marginTop:35 }}>
@@ -193,6 +194,13 @@ const App = () => {
             <FontAwesome name="times" size={20} color="#A490F6" />
             <Text style={styles.buttonText}>Clear</Text>
           </TouchableOpacity>
+          <ConfirmCustomAlert
+        visible={isAlertVisible}
+        title="Clear Selection"
+        message="Are you sure you want to clear the selections?"
+        onConfirm={handleConfirmClear}
+        onCancel={handleCancelClear}
+      />
         </View>
       </View>
       <FilterModal
