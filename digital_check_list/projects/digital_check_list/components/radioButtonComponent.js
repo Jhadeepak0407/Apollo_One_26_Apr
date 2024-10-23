@@ -1,44 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 
-const RadioButtonGroup = ({ options, onValueChange, nARemarks }) => {
-    const [selectedValue, setSelectedValue] = useState(null);
-    const [naRemarks, setNaRemarks] = useState(''); // Initialize as an empty string
-
-    // Update naRemarks when nARemarks changes
-    useEffect(() => {
-        setNaRemarks(nARemarks);
-    }, [nARemarks]);
-
-    const handlePress = (value) => {
-        setSelectedValue(value);
-        onValueChange(value);
-    };
+const RadioButtonGroup = ({ options, nARemarks, setSelectedValue, selected }) => {
+    const [naRemarks, setNaRemarks] = useState(nARemarks);
 
     return (
         <View style={styles.radioGroup}>
             {options.map((option) => (
                 <TouchableOpacity
                     key={option.value}
-                    style={[
-                        styles.radioButtonContainer,
-                        selectedValue === option.value && styles.activeButton,
-                    ]}
-                    onPress={() => handlePress(option.value)}
+                    style={[styles.radioButtonContainer, option.label === selected && styles.activeButton]}
+                    onPress={() => setSelectedValue(option.label)}
                 >
-                    <Text
-                        style={[
-                            styles.radioButtonLabel,
-                            selectedValue === option.value && styles.activeLabel,
-                        ]}
-                    >
+                    <Text style={[styles.radioButtonLabel, selected === option.label && styles.activeLabel]}>
                         {option.label}
                     </Text>
                 </TouchableOpacity>
             ))}
-
-            {/* TextInput for "n/a" option */}
-            {selectedValue === 2 && ( // Assuming 2 is the value for "n/a"
+            {selected?.toLowerCase() === "na" && ( // Assuming 2 is for "n/a"
                 <TextInput
                     style={styles.textInput}
                     placeholder="Please provide details..."
@@ -49,9 +28,6 @@ const RadioButtonGroup = ({ options, onValueChange, nARemarks }) => {
         </View>
     );
 };
-
-
-
 
 const styles = StyleSheet.create({
     radioGroup: {
@@ -79,10 +55,10 @@ const styles = StyleSheet.create({
         color: '#333',
     },
     activeButton: {
-        backgroundColor: '#97abbf', 
+        backgroundColor: '#97abbf',
     },
     activeLabel: {
-        color: 'white', 
+        color: 'white',
     },
     textInput: {
         height: 40,
@@ -94,4 +70,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default RadioButtonGroup;
+export default React.memo(RadioButtonGroup);
