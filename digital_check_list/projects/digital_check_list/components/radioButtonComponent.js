@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Button, Pressable } from 'react-native';
 
 const RadioButtonGroup = ({ options, nARemarks, setSelectedValue, selected }) => {
     const [naRemarks, setNaRemarks] = useState(nARemarks);
@@ -7,7 +7,7 @@ const RadioButtonGroup = ({ options, nARemarks, setSelectedValue, selected }) =>
     return (
         <View style={styles.radioGroup}>
             {options.map((option) => (
-                <TouchableOpacity
+                <Pressable
                     key={option.value}
                     style={[styles.radioButtonContainer, option.label === selected && styles.activeButton]}
                     onPress={() => setSelectedValue(option.label)}
@@ -15,7 +15,7 @@ const RadioButtonGroup = ({ options, nARemarks, setSelectedValue, selected }) =>
                     <Text style={[styles.radioButtonLabel, selected === option.label && styles.activeLabel]}>
                         {option.label}
                     </Text>
-                </TouchableOpacity>
+                </Pressable>
             ))}
             {selected?.toLowerCase() === "na" && ( // Assuming 2 is for "n/a"
                 <TextInput

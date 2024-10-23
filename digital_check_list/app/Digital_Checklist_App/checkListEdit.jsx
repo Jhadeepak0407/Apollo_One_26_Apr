@@ -5,13 +5,12 @@ import { useFonts, Mulish_400Regular, Mulish_600SemiBold } from '@expo-google-fo
 import { Stack } from 'expo-router';
 import { fetchHeaderData, fetchSubHeaderData, fetchQuestions } from '../../services/Utils/getCheckListData';
 import RadioButtonGroup from '../../projects/digital_check_list/components/radioButtonComponent';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { faL } from '@fortawesome/free-solid-svg-icons';
 
 const MainPage = () => {
   const [headerData, setHeaderData] = useState([]);
   const [subHeaderData, setSubHeaderData] = useState([]);
   const [questionsData, setQuestionsData] = useState([]);
+  const [questionsData1, setQuestionsData1] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formValues, setFormValues] = useState({});
@@ -94,10 +93,6 @@ const MainPage = () => {
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Points to check</Text>
           {questionsData?.sort((a, b) => Number(b.fieldId) - Number(a.fieldId))?.map((questionItem) => {
-            // console.log(questionsData);
-            // if (questionIndex === 0)
-            //   console.log('Question Item:', questionItem);
-
             return (
               <View key={questionItem.fieldId} style={styles.questionContainer}>
                 <Text style={styles.taskDetail}>{questionItem.fieldName}</Text>
@@ -109,10 +104,6 @@ const MainPage = () => {
                     value: index,
                   }))}
                   selected={questionItem?.selection}
-                  // onValueChange={(value) => {
-                  //   console.log(`Selected value for ${questionItem.questionText}:`, value);
-                  //   setFormValues({ ...formValues, [questionItem.questionText]: value });
-                  // }}
                   setSelectedValue={(e) => selectionHandler(e, questionItem.fieldId, setQuestionsData)}
                   nARemarks={formValues[questionItem.questionText]} // Pass any necessary props
                 />
@@ -134,11 +125,6 @@ const MainPage = () => {
       </>
 
       )}
-
-
-
-
-
     </ScrollView>
   );
 };

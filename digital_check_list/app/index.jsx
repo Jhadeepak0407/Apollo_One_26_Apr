@@ -15,10 +15,10 @@ export default function App() {
         if (tokenNo.length > 10) {
           router.replace("applist");
         } else {
-          router.replace("login");
+          router.replace("Digital_Checklist_App/checkListEdit");
         }
       } catch (error) {
-        router.replace("login");
+        router.replace("Digital_Checklist_App/checkListEdit");
       }
     })();
   }, []);
