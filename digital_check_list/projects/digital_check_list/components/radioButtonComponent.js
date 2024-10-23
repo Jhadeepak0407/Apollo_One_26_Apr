@@ -10,7 +10,7 @@ const RadioButtonGroup = ({ options, nARemarks, setSelectedValue, selected }) =>
                 <Pressable
                     key={option.value}
                     style={[styles.radioButtonContainer, option.label === selected && styles.activeButton]}
-                    onPress={() => setSelectedValue(option.label)}
+                    onPress={() => setSelectedValue({ label: option.label, naData: naRemarks })}
                 >
                     <Text style={[styles.radioButtonLabel, selected === option.label && styles.activeLabel]}>
                         {option.label}

@@ -29,7 +29,7 @@ export default function Layout() {
       <Provider store={store}>
         <Stack
           screenOptions={{
-            headerShown: false,
+            headerShown: true,
           }}
         />
       </Provider>
