@@ -42,6 +42,29 @@ export const fetchSubHeaderData = async (setSubHeaderData, setLoading, setError)
   }
 };
 
+// Fetch data from the third API (Sub Header Value)
+
+export const fetchSubHeaderValue = async (setSubHeaderValue, setLoading, setError) => {
+  try {
+    const response = await axios.get('http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains_Header_Value?taskid=16&ip_number=DELIP504639');
+    const fetchedSubHeaderValue = response.data;
+
+    if (!fetchedSubHeaderValue || fetchedSubHeaderValue.length === 0) {
+      throw new Error('Fetched sub-header value is empty or invalid.');
+    }
+
+    console.log('Fetched Sub-Header Value:', fetchedSubHeaderValue);
+    setSubHeaderValue(fetchedSubHeaderValue); // Set fetched sub-header data
+  } catch (error) {
+    console.error('Error fetching sub-header data:', error.message);
+    setError('Error fetching sub-header data.');
+  } finally {
+    console.log("Api 2");
+    //setLoading(false); // Set loading to false
+  }
+};
+
+
 // Fetch data from the third API (Questions)
 export const fetchQuestions = async (setQuestionsData, setLoading, setError) => {
   try {

@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Button, Pressable } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
 
 const RadioButtonGroup = ({ options, nARemarks, setSelectedValue, selected }) => {
     const [naRemarks, setNaRemarks] = useState(nARemarks);
+
+    useEffect(() => {
+        setNaRemarks(nARemarks); // Update the local state whenever the prop changes
+    }, [nARemarks]);
 
     return (
         <View style={styles.radioGroup}>
@@ -10,19 +14,24 @@ const RadioButtonGroup = ({ options, nARemarks, setSelectedValue, selected }) =>
                 <Pressable
                     key={option.value}
                     style={[styles.radioButtonContainer, option.label === selected && styles.activeButton]}
-                    onPress={() => setSelectedValue({ label: option.label, naData: naRemarks })}
+                    onPress={() => {
+                        setSelectedValue({ label: option.label, naData: naRemarks });
+                    }}
                 >
                     <Text style={[styles.radioButtonLabel, selected === option.label && styles.activeLabel]}>
                         {option.label}
                     </Text>
                 </Pressable>
             ))}
-            {selected?.toLowerCase() === "na" && ( // Assuming 2 is for "n/a"
+            {selected?.toLowerCase() === "na" && (
                 <TextInput
                     style={styles.textInput}
                     placeholder="Please provide details..."
                     value={naRemarks}
-                    onChangeText={setNaRemarks}
+                    onChangeText={(text) => {
+                        setNaRemarks(text);
+                        setSelectedValue({ label: selected, naData: text }); // Update parent state on text change
+                    }}
                 />
             )}
         </View>
@@ -40,13 +49,6 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 20,
         elevation: 2,
-        // shadowColor: '#000',
-        // shadowOffset: {
-        //     width: 0,
-        //     height: 1,
-        // },
-        // shadowOpacity: 0.2,
-        // shadowRadius: 1.5,
         marginVertical: 5,
         alignItems: 'center',
     },
@@ -69,5 +71,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
 });
+
+
 
 export default React.memo(RadioButtonGroup);
