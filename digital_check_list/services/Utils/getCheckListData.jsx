@@ -64,24 +64,87 @@ export const fetchSubHeaderValue = async (setSubHeaderValue, setLoading, setErro
   }
 };
 
+const apiInstance = async ({ method = "GET", url, body }) => {
 
-// Fetch data from the third API (Questions)
-export const fetchQuestions = async (setQuestionsData, setLoading, setError) => {
   try {
-    const response = await axios.get('http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains_without_header?taskid=16');
-    const fetchedQuestions = response.data;
+    let response;
+    if (method === "GET")
+      response = await axios.get('http://10.10.9.89:203/api/' + url);
+    else response = await axios.post('http://10.10.9.89:203/api/' + url, body, {});
 
-    if (!fetchedQuestions || fetchedQuestions.length === 0) {
-      throw new Error('Fetched questions data is empty or invalid.');
+
+    const fetchedSubHeaderValue = response.data;
+
+    if (!fetchedSubHeaderValue || fetchedSubHeaderValue.length === 0) {
+      throw new Error('Unknown Error!');
     }
 
-    console.log('Fetched Questions Data:', fetchedQuestions);
-    setQuestionsData(fetchedQuestions); // Set fetched questions data
+    // console.table(fetchedSubHeaderValue);
+
+    return {
+      data: fetchedSubHeaderValue,
+      error: null,
+      status: 200
+    }
+
   } catch (error) {
-    console.error('Error fetching questions:', error.message);
-    setError('Error fetching questions.');
+    console.error('Error fetching sub-header data:', error);
+
+    return {
+      data: null,
+      error: error.message,
+      status: 501
+    }
+
   } finally {
-    console.log("API 3");
-    setLoading(false); // Set loading to false
+    console.log("Api 2");
+    //setLoading(false); // Set loading to false
   }
+}
+
+
+// export const fetchQuestions = async (setQuestionsData, setLoading, setError) => {
+//   const fetchedQuestions = await apiInstance({ url: "Users/DynamicFormDatadetails_Mains_without_header?taskid=16" });
+
+
+//   if (fetchedQuestions.status == "200") {
+
+//     const modifiedData = fetchedQuestions?.data?.map((item) => {
+//       return {
+//         ...item,
+//         selection: "",
+//         natext: "",
+//         headerName: item.headerName ? item.headerName : "",
+//         headerId: item.headerId ? item.headerId : "",
+//         isMainHeader: JSON.stringify(item.isMainHeader)
+
+//       }
+//     })
+
+//     console.table(modifiedData);
+
+//     setQuestionsData(modifiedData);
+//   } else setError('Error fetching questions.');
+
+//   setLoading(false);
+
+// };
+
+
+
+export const fetchCheckListData = async (setQuestionsData, setLoading, setError) => {
+  const fetchedCheckListData = await apiInstance({ url: "Users/CheckListDataBind?taskid=16&delip=22" });
+
+
+  if (fetchedCheckListData.status == "200") {
+
+
+    console.log('dd');
+    console.table(fetchedCheckListData.data);
+
+    setQuestionsData(fetchedCheckListData.data);
+  } else setError('Error fetching questions.');
+
+  setLoading(false);
+
 };

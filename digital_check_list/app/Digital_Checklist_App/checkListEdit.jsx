@@ -2,17 +2,19 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useFonts, Mulish_400Regular, Mulish_600SemiBold } from '@expo-google-fonts/mulish';
-import { Stack, useRouter } from 'expo-router';
-import { fetchHeaderData, fetchSubHeaderData, fetchQuestions, fetchSubHeaderValue } from '../../services/Utils/getCheckListData';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { fetchHeaderData, fetchSubHeaderData, fetchSubHeaderValue, fetchCheckListData } from '../../services/Utils/getCheckListData';
 import RadioButtonGroup from '../../projects/digital_check_list/components/radioButtonComponent';
+import { saveFormData } from '../../services/Utils/postCheckListData';
 
 const MainPage = () => {
   const [headerData, setHeaderData] = useState([]);
   const [subHeaderData, setSubHeaderData] = useState([]);
   const [subHeaderValue, setSubHeaderValue] = useState([]);
-  const [questionsData, setQuestionsData] = useState([]);
+  // const [questionsData, setQuestionsData] = useState([]);
+  const [checkListData, setcheckListData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [headerUpdatedData, setHeaderUpdatedData] = useState(null)
+  // const [headerUpdatedData, setHeaderUpdatedData] = useState(null)
   const [error, setError] = useState(null);
   const counter = useRef(false);
 
@@ -22,13 +24,27 @@ const MainPage = () => {
   });
 
 
+
+  const params = useLocalSearchParams()
+
+  useEffect(() => {
+    console.log(params)
+  },[params])
+
+
+
+
+
+
+
   useEffect(() => {
     if (counter.current === false) {
       if (headerData.length === 0) {
         fetchHeaderData(setHeaderData, setLoading, setError);
         fetchSubHeaderData(setSubHeaderData, setLoading, setError);
         fetchSubHeaderValue(setSubHeaderValue, setLoading, setError);
-        fetchQuestions(setQuestionsData, setLoading, setError);
+        // fetchQuestions(setQuestionsData, setLoading, setError);
+        fetchCheckListData(setcheckListData, setLoading, setError);
         setLoading(false);
         counter.current = true;
       }
@@ -42,11 +58,11 @@ const MainPage = () => {
           ? { ...item, secondColumnData: text }
           : item
       );
-      console.log(updatedValues); // Log the updated values after the map operation
+      console.log(updatedValues);
       return updatedValues;
     });
   };
-  
+
 
 
 
@@ -54,24 +70,30 @@ const MainPage = () => {
     console.log('Draft saved:', formValues);
   };
 
-  const handleFinalSave = () => {
+  const handleFinalSave = async () => {
     const finalData = {
-      header: subHeaderValue, // Assuming `subHeaderValue` is the state holding the header data
-      questions: questionsData // Assuming `questionsData` is the state holding the questions
+      header: subHeaderValue,
+      questions: checkListData
     };
-  
-    console.log('Final saved:', finalData);
+
+    console.table(finalData.questions);
+    try {
+      const response = await saveFormData(finalData);
+      console.log('API response:', response);
+    } catch (error) {
+      console.error('Error while saving form data:', error);
+    }
   };
-  
+
 
   if (error) {
     return <Text>Error: {error}</Text>;
   }
 
   const selectionHandler = (value, key, naText) => {
-    setQuestionsData(prev => {
+    setcheckListData(prev => {
       const updatedQuestions = prev.map(item => {
-        if (item.fieldId === key) {
+        if (item.field_id === key) {
           return { ...item, selection: value, natext: naText }; // Update both selection and naText
         }
         return item;
@@ -91,30 +113,30 @@ const MainPage = () => {
           <ActivityIndicator size="large" color="#545454" />
         ) : (
           <View style={styles.sectionContainer}>
-          {subHeaderValue?.map((item) => (
-        <View key={item.subfieldId} style={styles.fieldContainer}>
-          <Text style={styles.taskDetail}>{item.textBoxFieldName}</Text>
-          <TextInput
-            style={styles.input}
-            value={item.secondColumnData}  // Display secondColumnData as the initial value
-            onChangeText={(text) => handleTextChange(text, item.subfieldId)}  // Update state by subfieldId
-          />
-        </View>
-      ))}
+            {subHeaderValue?.map((item) => (
+              <View key={item.subfieldId} style={styles.fieldContainer}>
+                <Text style={styles.taskDetail}>{item.textBoxFieldName}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={item.secondColumnData}  // Display secondColumnData as the initial value
+                  onChangeText={(text) => handleTextChange(text, item.subfieldId)}  // Update state by subfieldId
+                />
+              </View>
+            ))}
 
             <View style={styles.sectionContainer}>
               <Text style={styles.sectionTitle}>Points to check</Text>
-              {questionsData?.sort((a, b) => Number(b.fieldId) - Number(a.fieldId))?.map((questionItem) => {
+              {checkListData?.sort((a, b) => Number(b.field_id) - Number(a.field_id))?.map((questionItem, index) => {
                 return (
-                  <View key={questionItem.fieldId} style={styles.questionContainer}>
-                    <Text style={styles.taskDetail}>{questionItem.fieldName}</Text>
+                  <View key={questionItem.field_id} style={styles.questionContainer}>
+                    <Text style={styles.taskDetail} > {index + 1}. {questionItem.field_name}</Text>
                     <RadioButtonGroup
                       options={questionItem.checkBoxFieldName.split(',').map((option, index) => ({
                         label: option.trim(),
                         value: index,
                       }))}
                       selected={questionItem?.selection}
-                      setSelectedValue={(e) => selectionHandler(e.label, questionItem.fieldId, e.naData)}
+                      setSelectedValue={(e) => selectionHandler(e.label, questionItem.field_id, e.naData)}
                       nARemarks={questionItem.natext} // Pass the current naText to the component
                     />
                   </View>

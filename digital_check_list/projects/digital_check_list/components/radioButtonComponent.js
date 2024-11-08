@@ -19,7 +19,7 @@ const RadioButtonGroup = ({ options, nARemarks, setSelectedValue, selected }) =>
                     }}
                 >
                     <Text style={[styles.radioButtonLabel, selected === option.label && styles.activeLabel]}>
-                        {option.label}
+                        {option.label?.toLowerCase() == "na" ? "N/A" : option.label }
                     </Text>
                 </Pressable>
             ))}
@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         paddingHorizontal: 8,
         marginTop: 10,
+        backgroundColor:"#fff"
     },
 });
 
