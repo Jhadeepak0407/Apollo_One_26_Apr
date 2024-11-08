@@ -44,11 +44,9 @@ const HomeScreen = () => {
             label: loc.location_Display_Name,
           }));
           setLocations(fetchedLocations);
-        //////  setLocation(fetchedLocations[0]?.value);
+          //////  setLocation(fetchedLocations[0]?.value);
         });
-    } catch (error)
-    
-    {
+    } catch (error) {
 
       console.log("ERROR IN CALLING API at applist page", error);
     }
@@ -82,12 +80,12 @@ const HomeScreen = () => {
         outputRange: [0, 1],
       }),
     };
- 
+
     const navigateToPage = () => {
       if (!location) {
         // Show alert if location is not selected
-       //// alert('Please select a location before proceeding.');
-       setAlertVisible(true);
+        //// alert('Please select a location before proceeding.');
+        setAlertVisible(true);
       }
       else {
         // Navigate to the selected page if location is selected
@@ -125,10 +123,10 @@ const HomeScreen = () => {
         <TouchableOpacity
           style={[styles.menuButton, { backgroundColor: item.color }]}
           onPress={() => {
-          ////  navigation.navigate(item.route);
+            ////  navigation.navigate(item.route);
             navigateToPage();
           }}
-       /////onPress={navigateToPage}
+        /////onPress={navigateToPage}
         >
           <MaterialIcons name={item.icon} size={40} color="white" />
         </TouchableOpacity>
@@ -148,8 +146,6 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-       <Stack.Screen
-        options={{title:"Home", statusBarColor:"black"}} />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
@@ -209,8 +205,8 @@ const HomeScreen = () => {
           </View>
         </View>
       </Modal>
-         {/* Alert Modal for Location Selection */}
-         <Modal
+      {/* Alert Modal for Location Selection */}
+      <Modal
         transparent={true}
         visible={alertVisible}
         animationType="slide"
@@ -238,7 +234,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#2C3E50",
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 10,
   },
   header: {
     flexDirection: "row",

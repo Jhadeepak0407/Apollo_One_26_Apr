@@ -25,12 +25,12 @@ const App = () => {
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);  // Manages alert visibility
   const [alertTitle, setAlertTitle] = useState("");         // Manages alert title
-  const [alertMessage, setAlertMessage] = useState(""); 
+  const [alertMessage, setAlertMessage] = useState("");
   const [isAlertVisible, setIsAlertVisible] = useState(false);
 
   const memoizedDepartments = useMemo(() => departments, [departments]);
   const memoizedCheckLists = useMemo(() => checkLists, [checkLists]);
- 
+
   const filteredMenu = useMemo(() => {
     if (!filterStatus) return menu;
     return menu.filter((item) => item.status === filterStatus);
@@ -65,7 +65,7 @@ const App = () => {
       });
     }
   }, [selectedDepartment, locationId]);
- 
+
   const handleSearch = async () => {
     if (selectedCheckList && fromDate && toDate) {
       const menuDetails = await fetchMenuDetails(
@@ -83,11 +83,11 @@ const App = () => {
         setIsMenuVisible(false);
       }
     } else {
-       // Set alert details and make it visible
-    setAlertTitle("Selection Required Fields");
+      // Set alert details and make it visible
+      setAlertTitle("Selection Required Fields");
 
-    setAlertMessage("Please select a checklist and valid date range.");
-    setAlertVisible(true);
+      setAlertMessage("Please select a checklist and valid date range.");
+      setAlertVisible(true);
     }
   };
 
@@ -113,109 +113,109 @@ const App = () => {
 
 
   return (
-    <SafeAreaView style={{ flex: 1,marginTop:35 }}>
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
-    >
-      <Text style={styles.label}>Department</Text>
-      <CustomDropdown
-        open={openDeptDropdown}
-        value={selectedDepartment}
-        items={memoizedDepartments}
-        setOpen={setOpenDeptDropdown}
-        setValue={setSelectedDepartment}
-        placeholder="Select a department"
-        searchPlaceholder="Search departments..."
-      />
-        <CustomAlert
-      visible={alertVisible}
-      title={alertTitle}
-      message={alertMessage}
-      onClose={() => setAlertVisible(false)}
-    />
-
-      <Text style={styles.label}>Checklist</Text>
-      <CustomDropdown
-        open={openChecklistDropdown}
-        value={selectedCheckList}
-        items={memoizedCheckLists}
-        setOpen={setOpenChecklistDropdown}
-        setValue={setSelectedCheckList}
-        placeholder="Select a checklist"
-        searchPlaceholder="Search checklists..."
-      />
-
-      <View style={styles.dateRow}>
-        <View style={styles.datePickerContainer}>
-          <CustomDatePicker
-            fromDate={fromDate}
-            toDate={toDate}
-            setFromDate={setFromDate}
-            setToDate={setToDate}
-          />
-        </View>
-      </View>
-
-      {isMenuVisible ? (
-        <FlatList
-          data={filteredMenu}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => <MenuItem item={item} />}
-          ListEmptyComponent={
-            <Text style={styles.noDataText}>No data available</Text>
-          }
-          nestedScrollEnabled
-          style={styles.menuList}
+    <SafeAreaView style={{ flex: 1 }}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+      >
+        <Text style={styles.label}>Department</Text>
+        <CustomDropdown
+          open={openDeptDropdown}
+          value={selectedDepartment}
+          items={memoizedDepartments}
+          setOpen={setOpenDeptDropdown}
+          setValue={setSelectedDepartment}
+          placeholder="Select a department"
+          searchPlaceholder="Search departments..."
         />
-      ) : (
-        <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}></Text>
-        </View>
-      )}
+        <CustomAlert
+          visible={alertVisible}
+          title={alertTitle}
+          message={alertMessage}
+          onClose={() => setAlertVisible(false)}
+        />
 
-      <View style={styles.buttonRow}>
-     
-    <TouchableOpacity
-      onPress={() => setIsFilterModalVisible(true)}
-      style={styles.filterButton}
-    >
-      <FontAwesome name="filter" size={20} color="#A490F6" />
-      <Text style={styles.buttonText}>Filter</Text>
-    </TouchableOpacity>
- 
-        <View style={styles.rightButtons}>
-          <TouchableOpacity onPress={handleSearch} style={styles.button}>
-            <FontAwesome name="search" size={20} color="#A490F6" />
-            <Text style={styles.buttonText}>Search</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleClear} style={styles.button}>
-            <FontAwesome name="times" size={20} color="#A490F6" />
-            <Text style={styles.buttonText}>Clear</Text>
-          </TouchableOpacity>
-          <ConfirmCustomAlert
-        visible={isAlertVisible}
-        title="Clear Selection"
-        message="Are you sure you want to clear the selections?"
-        onConfirm={handleConfirmClear}
-        onCancel={handleCancelClear}
-      />
+        <Text style={styles.label}>Checklist</Text>
+        <CustomDropdown
+          open={openChecklistDropdown}
+          value={selectedCheckList}
+          items={memoizedCheckLists}
+          setOpen={setOpenChecklistDropdown}
+          setValue={setSelectedCheckList}
+          placeholder="Select a checklist"
+          searchPlaceholder="Search checklists..."
+        />
+
+        <View style={styles.dateRow}>
+          <View style={styles.datePickerContainer}>
+            <CustomDatePicker
+              fromDate={fromDate}
+              toDate={toDate}
+              setFromDate={setFromDate}
+              setToDate={setToDate}
+            />
+          </View>
         </View>
-      </View>
-      <FilterModal
-        visible={isFilterModalVisible}
-        onClose={() => setIsFilterModalVisible(false)}
-        onApplyFilter={(status) => {
-          setFilterStatus(status);
-          setIsFilterModalVisible(false);
-        }}
-      />
-       
-   
-    </KeyboardAvoidingView>
+
+        {isMenuVisible ? (
+          <FlatList
+            data={filteredMenu}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => <MenuItem item={item} />}
+            ListEmptyComponent={
+              <Text style={styles.noDataText}>No data available</Text>
+            }
+            nestedScrollEnabled
+            style={styles.menuList}
+          />
+        ) : (
+          <View style={styles.placeholder}>
+            <Text style={styles.placeholderText}></Text>
+          </View>
+        )}
+
+        <View style={styles.buttonRow}>
+
+          <TouchableOpacity
+            onPress={() => setIsFilterModalVisible(true)}
+            style={styles.filterButton}
+          >
+            <FontAwesome name="filter" size={20} color="#A490F6" />
+            <Text style={styles.buttonText}>Filter</Text>
+          </TouchableOpacity>
+
+          <View style={styles.rightButtons}>
+            <TouchableOpacity onPress={handleSearch} style={styles.button}>
+              <FontAwesome name="search" size={20} color="#A490F6" />
+              <Text style={styles.buttonText}>Search</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleClear} style={styles.button}>
+              <FontAwesome name="times" size={20} color="#A490F6" />
+              <Text style={styles.buttonText}>Clear</Text>
+            </TouchableOpacity>
+            <ConfirmCustomAlert
+              visible={isAlertVisible}
+              title="Clear Selection"
+              message="Are you sure you want to clear the selections?"
+              onConfirm={handleConfirmClear}
+              onCancel={handleCancelClear}
+            />
+          </View>
+        </View>
+        <FilterModal
+          visible={isFilterModalVisible}
+          onClose={() => setIsFilterModalVisible(false)}
+          onApplyFilter={(status) => {
+            setFilterStatus(status);
+            setIsFilterModalVisible(false);
+          }}
+        />
+
+
+      </KeyboardAvoidingView>
     </SafeAreaView>
-    
+
   );
 };
 
@@ -230,9 +230,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Mullish",
     marginBottom: 8,
-    color:"darkblack",
-    fontWeight:"800"
-    
+    color: "darkblack",
+    fontWeight: "800"
+
   },
   dropdown: {
     borderColor: "#A490F6",
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   datePickerContainer: {
     flex: 1,
     marginRight: 5,
-    fontFamily:"Mullish",
+    fontFamily: "Mullish",
     //color:'#999',
     borderColor: "#A490F6",
   },
@@ -296,9 +296,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 8,
-   
+
   },
-  
+
   rightButtons: {
     flexDirection: "row",
     alignItems: "center",
@@ -325,6 +325,6 @@ const styles = StyleSheet.create({
     color: "#999",
   },
 });
- 
+
 export default App;
- 
+
