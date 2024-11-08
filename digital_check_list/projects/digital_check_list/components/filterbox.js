@@ -35,15 +35,16 @@ const FilterModal = ({ visible, onClose, onApplyFilter }) => {
           </View>
 
           <View style={styles.modalButtons}>
-            <TouchableOpacity onPress={applyFilter} style={styles.modalButton}>
-              <FontAwesome name="check" size={20} color="#A490F6" />
-              <Text style={styles.buttonText}>Apply</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onClose} style={styles.modalButton}>
-              <FontAwesome name="times" size={20} color="#A490F6" />
-              <Text style={styles.buttonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+  <TouchableOpacity onPress={applyFilter} style={[styles.alertButton, { backgroundColor: '#FF5722' }]}>
+    {/* <FontAwesome name="check" size={20} color="#FFFFFF" /> */}
+    <Text style={[styles.alertButtonText, { color: '#FFFFFF' }]}>Apply</Text>
+  </TouchableOpacity>
+  <TouchableOpacity onPress={onClose} style={[styles.modalButton, { backgroundColor: 'grey' }]}>
+    {/* <FontAwesome name="times" size={20} color="#FF5722" /> */}
+    <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>Cancel</Text>
+  </TouchableOpacity>
+</View>
+
         </View>
       </View>
     </Modal>
@@ -83,14 +84,36 @@ const styles = StyleSheet.create({
     fontFamily: "Mullish",
   },
   modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 10,
+  },
+  alertButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
   },
   modalButton: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+   
+   
   },
+  alertButtonText: {
+    marginLeft: 5,
+    fontSize: 16,
+  },
+  buttonText: {
+    marginLeft: 5,
+    fontSize: 16,
+  },
+
+
   listContainer: {
     marginBottom: 16,
   },

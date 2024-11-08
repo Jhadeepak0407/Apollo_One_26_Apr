@@ -65,6 +65,7 @@ const CustomDropdown = ({value,items,setValue,placeholder,searchPlaceholder,}) =
                     handleSelect={handleSelect}
                   />
                 )}
+                initialNumToRender={15}
                 ItemSeparatorComponent={() => <View style={styles.separator} />} 
                 style={styles.listStyle} 
               />
