@@ -1,105 +1,120 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useFonts, Mulish_400Regular, Mulish_600SemiBold } from '@expo-google-fonts/mulish';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { fetchHeaderData, fetchSubHeaderData, fetchSubHeaderValue, fetchCheckListData } from '../../services/Utils/getCheckListData';
+import { fetchHeaderData, fetchSubHeaderValue, fetchCheckListDetails } from '../../services/Utils/getCheckListData';
 import RadioButtonGroup from '../../projects/digital_check_list/components/radioButtonComponent';
-import { saveFormData } from '../../services/Utils/postCheckListData';
+import { saveFormData, updateFormData } from '../../services/Utils/postCheckListData';
 
 const MainPage = () => {
   const [headerData, setHeaderData] = useState([]);
-  const [subHeaderData, setSubHeaderData] = useState([]);
   const [subHeaderValue, setSubHeaderValue] = useState([]);
-  // const [questionsData, setQuestionsData] = useState([]);
-  const [checkListData, setcheckListData] = useState([]);
   const [loading, setLoading] = useState(true);
-  // const [headerUpdatedData, setHeaderUpdatedData] = useState(null)
+  const [checkListDetails, setcheckListDetails] = useState([]);
   const [error, setError] = useState(null);
-  const counter = useRef(false);
 
-  let [fontsLoaded] = useFonts({
-    Mulish_400Regular,
-    Mulish_600SemiBold,
-  });
-
-
-
-  const params = useLocalSearchParams()
+  const params = useLocalSearchParams();
+  const router = useRouter(); // Get router object from Expo Router
 
   useEffect(() => {
-    console.log(params)
-  },[params])
-
-
-
-
-
-
+    console.table(checkListDetails);
+  }, [checkListDetails]);
 
   useEffect(() => {
-    if (counter.current === false) {
-      if (headerData.length === 0) {
-        fetchHeaderData(setHeaderData, setLoading, setError);
-        fetchSubHeaderData(setSubHeaderData, setLoading, setError);
-        fetchSubHeaderValue(setSubHeaderValue, setLoading, setError);
-        // fetchQuestions(setQuestionsData, setLoading, setError);
-        fetchCheckListData(setcheckListData, setLoading, setError);
+    console.table(params);
+  }, [params]);
+
+  useEffect(() => {
+    // Fetch data and update loading state
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        await fetchHeaderData(setHeaderData, setLoading, setError);
+        await fetchSubHeaderValue(setSubHeaderValue, setLoading, setError, params);
+        await fetchCheckListDetails(setcheckListDetails, setLoading, setError, params);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
         setLoading(false);
-        counter.current = true;
       }
+    };
+
+    if (headerData.length === 0) {
+      fetchData();
     }
   }, []);
 
   const handleTextChange = (text, subfieldId) => {
-    setSubHeaderValue((prevValues) => {
-      const updatedValues = prevValues.map((item) =>
+    setSubHeaderValue((prevValues) =>
+      prevValues.map((item) =>
         item.subfieldId === subfieldId
           ? { ...item, secondColumnData: text }
           : item
-      );
-      console.log(updatedValues);
-      return updatedValues;
-    });
+      )
+    );
   };
 
-
-
-
-  const handleDraftSave = () => {
-    console.log('Draft saved:', formValues);
-  };
-
-  const handleFinalSave = async () => {
+  const handleDraftSave = async () => {
+    setLoading(true);
     const finalData = {
       header: subHeaderValue,
-      questions: checkListData
+      questions: checkListDetails,
     };
 
-    console.table(finalData.questions);
+    console.log(finalData);
     try {
-      const response = await saveFormData(finalData);
+      const response = await updateFormData(finalData);
+      if(response.status = "200"){
+        setLoading(false);
+        router.back(); 
+      }
       console.log('API response:', response);
     } catch (error) {
       console.error('Error while saving form data:', error);
     }
   };
 
+  const handleFinalSave = async () => {
+    setLoading(true);
+
+    const finalData = {
+      header: subHeaderValue,
+      questions: checkListDetails,
+    };
+
+    try {
+      const response = await saveFormData(finalData);
+      if(response.status = "200"){
+        setLoading(false);
+        router.back(); 
+      }
+      console.log('API response:', response);
+    } catch (error) {
+      console.error('Error while saving form data:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF4C00" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
 
   if (error) {
     return <Text>Error: {error}</Text>;
   }
 
-  const selectionHandler = (value, key, naText) => {
-    setcheckListData(prev => {
-      const updatedQuestions = prev.map(item => {
-        if (item.field_id === key) {
-          return { ...item, selection: value, natext: naText }; // Update both selection and naText
-        }
-        return item;
-      });
-      return updatedQuestions;
-    });
+  const selectionHandler = ({ key, naText, subFieldID }) => {
+    setcheckListDetails((prev) =>
+      prev.map((item) =>
+        item.field_id === key
+          ? { ...item, selection: subFieldID, natext: naText }
+          : item
+      )
+    );
   };
 
   return (
@@ -109,49 +124,57 @@ const MainPage = () => {
       </View>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <Stack.Screen options={{ title: "Edit Checklist", statusBarColor: "black" }} />
-        {loading ? (
-          <ActivityIndicator size="large" color="#545454" />
-        ) : (
-          <View style={styles.sectionContainer}>
-            {subHeaderValue?.map((item) => (
-              <View key={item.subfieldId} style={styles.fieldContainer}>
-                <Text style={styles.taskDetail}>{item.textBoxFieldName}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={item.secondColumnData}  // Display secondColumnData as the initial value
-                  onChangeText={(text) => handleTextChange(text, item.subfieldId)}  // Update state by subfieldId
-                />
-              </View>
-            ))}
-
-            <View style={styles.sectionContainer}>
-              <Text style={styles.sectionTitle}>Points to check</Text>
-              {checkListData?.sort((a, b) => Number(b.field_id) - Number(a.field_id))?.map((questionItem, index) => {
-                return (
-                  <View key={questionItem.field_id} style={styles.questionContainer}>
-                    <Text style={styles.taskDetail} > {index + 1}. {questionItem.field_name}</Text>
-                    <RadioButtonGroup
-                      options={questionItem.checkBoxFieldName.split(',').map((option, index) => ({
-                        label: option.trim(),
-                        value: index,
-                      }))}
-                      selected={questionItem?.selection}
-                      setSelectedValue={(e) => selectionHandler(e.label, questionItem.field_id, e.naData)}
-                      nARemarks={questionItem.natext} // Pass the current naText to the component
-                    />
-                  </View>
-                );
-              })}
+        <View style={styles.sectionContainer}>
+          {subHeaderValue?.map((item) => (
+            <View key={item.subfieldId} style={styles.fieldContainer}>
+              <Text style={styles.taskDetail}>{item.textBoxFieldName}</Text>
+              <TextInput
+                style={styles.input}
+                value={item.secondColumnData}
+                onChangeText={(text) => handleTextChange(text, item.subfieldId)}
+              />
             </View>
+          ))}
+
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>Points to check</Text>
+            {checkListDetails
+              ?.sort((a, b) => Number(b.field_id) - Number(a.field_id))
+              ?.map((questionItem, index) => (
+                <View key={questionItem.field_id} style={styles.questionContainer}>
+                  <Text style={styles.taskDetail}>
+                    {index + 1}. {questionItem.field_name}
+                  </Text>
+                  <RadioButtonGroup
+                    options={{
+                      subField: questionItem.subField,
+                      checkBoxFieldName: questionItem.checkBoxFieldName,
+                    }}
+                    selected={questionItem?.selection}
+                    setSelectedValue={(e) =>
+                      selectionHandler({
+                        value: e.label,
+                        key: questionItem.field_id,
+                        naText: e.naData,
+                        subFieldID: e.value,
+                      })
+                    }
+                    nARemarks={questionItem.natext}
+                  />
+                </View>
+              ))}
           </View>
-        )}
+        </View>
       </ScrollView>
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.button} onPress={handleDraftSave}>
           <Icon name="save" size={20} color="#fff" />
           <Text style={styles.buttonText}>Draft Save</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, styles.successButton]} onPress={handleFinalSave}>
+        <TouchableOpacity
+          style={[styles.button, styles.successButton]}
+          onPress={handleFinalSave}
+        >
           <Icon name="check-circle" size={20} color="#fff" />
           <Text style={styles.buttonText}>Final Save</Text>
         </TouchableOpacity>
@@ -162,7 +185,6 @@ const MainPage = () => {
 
 
 
-// Styles for the component
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -174,7 +196,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: 'Mulish_600SemiBold',
+    //fontFamily: 'Mulish_600SemiBold',
     marginBottom: 10,
   },
   fieldContainer: {
@@ -182,7 +204,7 @@ const styles = StyleSheet.create({
   },
   taskDetail: {
     fontSize: 16,
-    fontFamily: 'Mulish_400Regular',
+   // fontFamily: 'Mulish_400Regular',
   },
   input: {
     height: 40,
@@ -219,24 +241,35 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   headerContainer: {
-    backgroundColor: '#cce7ff', // Light blue color
+    backgroundColor: '#cce7ff',
     padding: 10,
     borderRadius: 10,
-    alignItems: 'center', // Centers the content horizontally
+    alignItems: 'center',
     marginVertical: 10,
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 3,
-    elevation: 5, // Shadow effect for Android
+    elevation: 5,
     margin: 10
   },
   mainHeader: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333', // Darker text color for better readability
-    textAlign: 'center', // Center the text
-    fontFamily: 'Mulish_400Regular',
+    color: '#333',
+    textAlign: 'center',
+   // fontFamily: 'Mulish_400Regular',
 
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9F9F9',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#FF4C00',
   },
 });
 

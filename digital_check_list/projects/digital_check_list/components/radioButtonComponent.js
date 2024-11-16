@@ -1,36 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
 
 const RadioButtonGroup = ({ options, nARemarks, setSelectedValue, selected }) => {
-    const [naRemarks, setNaRemarks] = useState(nARemarks);
+    const subField = options.subField.split(",");
+    const checkBoxFieldName = options.checkBoxFieldName.split(",");
+    const data = subField.filter((_, i) => i != 0).map((item, index) => ({
+        value: item,
+        label: checkBoxFieldName[index]
+    }))
 
-    useEffect(() => {
-        setNaRemarks(nARemarks); // Update the local state whenever the prop changes
-    }, [nARemarks]);
+    // console.log({ selected })
 
     return (
         <View style={styles.radioGroup}>
-            {options.map((option) => (
+            {data.map((option) => (
                 <Pressable
                     key={option.value}
-                    style={[styles.radioButtonContainer, option.label === selected && styles.activeButton]}
+                    style={[styles.radioButtonContainer, option.value === selected && styles.activeButton]}
                     onPress={() => {
-                        setSelectedValue({ label: option.label, naData: naRemarks });
+                        setSelectedValue({ naData: nARemarks, value: option.value });
                     }}
                 >
-                    <Text style={[styles.radioButtonLabel, selected === option.label && styles.activeLabel]}>
-                        {option.label?.toLowerCase() == "na" ? "N/A" : option.label }
+                    <Text style={[styles.radioButtonLabel, selected === option.value && styles.activeLabel]}>
+                        {option.value.substr(-1) == "2" ? "N/A" : option.label}
                     </Text>
                 </Pressable>
             ))}
-            {selected?.toLowerCase() === "na" && (
+            {selected.substr(-1) == "2" && (
                 <TextInput
                     style={styles.textInput}
                     placeholder="Please provide details..."
-                    value={naRemarks}
+                    value={nARemarks}
                     onChangeText={(text) => {
-                        setNaRemarks(text);
-                        setSelectedValue({ label: selected, naData: text }); // Update parent state on text change
+                        setSelectedValue({ value: selected, naData: text });
+                        // ***Remove label key
                     }}
                 />
             )}
@@ -69,7 +72,7 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         paddingHorizontal: 8,
         marginTop: 10,
-        backgroundColor:"#fff"
+        backgroundColor: "#fff"
     },
 });
 

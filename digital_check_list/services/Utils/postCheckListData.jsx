@@ -1,9 +1,12 @@
 // apiService.js
-const API_BASE_URL = 'http://10.10.9.89:203/api/Users/SaveFormData'; 
+const API_BASE_URLS = {
+  save: 'http://10.10.9.89:203/api/Users/SaveCheckList',
+  update: 'http://10.10.9.89:203/api/Users/UpdateCheckList',
+};
 
-export const saveFormData = async (finalData) => {
+const makeApiCall = async (url, finalData) => {
   try {
-    const response = await fetch(API_BASE_URL, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -12,13 +15,21 @@ export const saveFormData = async (finalData) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to save form data');
+      throw new Error(`Failed to call API at ${url}`);
     }
 
     const result = await response.json();
     return result;
   } catch (error) {
     console.error('Error during API call:', error);
-    throw error; 
+    throw error; // Rethrow the error after logging it
   }
+};
+
+export const saveFormData = async (finalData) => {
+  return await makeApiCall(API_BASE_URLS.save, finalData);
+};
+
+export const updateFormData = async (finalData) => {
+  return await makeApiCall(API_BASE_URLS.update, finalData);
 };

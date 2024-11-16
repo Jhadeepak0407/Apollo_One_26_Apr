@@ -3,6 +3,7 @@ import axios from 'axios';
 // Fetch data from the first API (Main Header)
 export const fetchHeaderData = async (setHeaderData, setLoading, setError) => {
   try {
+    setLoading(true);
     const response = await axios.get('http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains?taskid=16');
     const fetchedHeaderData = response.data;
 
@@ -44,9 +45,10 @@ export const fetchSubHeaderData = async (setSubHeaderData, setLoading, setError)
 
 // Fetch data from the third API (Sub Header Value)
 
-export const fetchSubHeaderValue = async (setSubHeaderValue, setLoading, setError) => {
+export const fetchSubHeaderValue = async (setSubHeaderValue, setLoading, setError , params) => {
   try {
-    const response = await axios.get('http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains_Header_Value?taskid=16&ip_number=DELIP504639');
+    //const response = await axios.get('http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains_Header_Value?taskid=16&ip_number=DELIP504639');
+    const response = await axios.get(`http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains_Header_Value?taskid=16&ip_number=${params?.ipnumber}`);
     const fetchedSubHeaderValue = response.data;
 
     if (!fetchedSubHeaderValue || fetchedSubHeaderValue.length === 0) {
@@ -145,6 +147,23 @@ export const fetchCheckListData = async (setQuestionsData, setLoading, setError)
     setQuestionsData(fetchedCheckListData.data);
   } else setError('Error fetching questions.');
 
-  setLoading(false);
 
 };
+
+export const fetchCheckListDetails = async (setcheckListDetails, setLoading, setError , params) => {
+  //const fetchedCheckListData = await apiInstance({ url: "Users/CheckListDetails?cid=16&delip=22" });
+   const fetchedCheckListData = await apiInstance({ url: "Users/CheckListDetails?cid=16&delip=${params?.ipnumber}" });
+
+
+  if (fetchedCheckListData.status == "200") {
+
+
+    console.log('setcheckListDetails');
+    console.table(fetchedCheckListData.data);
+
+    setcheckListDetails(fetchedCheckListData.data);
+  } else setError('Error fetching questions.');
+
+
+};
+
