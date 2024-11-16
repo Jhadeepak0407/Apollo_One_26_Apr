@@ -1,28 +1,40 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Button, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
 
 const RadioButtonGroup = ({ options, nARemarks, setSelectedValue, selected }) => {
-    const [naRemarks, setNaRemarks] = useState(nARemarks);
+    const subField = options.subField.split(",");
+    const checkBoxFieldName = options.checkBoxFieldName.split(",");
+    const data = subField.filter((_, i) => i != 0).map((item, index) => ({
+        value: item,
+        label: checkBoxFieldName[index]
+    }))
+
+    // console.log({ selected })
 
     return (
         <View style={styles.radioGroup}>
-            {options.map((option) => (
+            {data.map((option) => (
                 <Pressable
                     key={option.value}
-                    style={[styles.radioButtonContainer, option.label === selected && styles.activeButton]}
-                    onPress={() => setSelectedValue({ label: option.label, naData: naRemarks })}
+                    style={[styles.radioButtonContainer, option.value === selected && styles.activeButton]}
+                    onPress={() => {
+                        setSelectedValue({ naData: nARemarks, value: option.value });
+                    }}
                 >
-                    <Text style={[styles.radioButtonLabel, selected === option.label && styles.activeLabel]}>
-                        {option.label}
+                    <Text style={[styles.radioButtonLabel, selected === option.value && styles.activeLabel]}>
+                        {option.value.substr(-1) == "2" ? "N/A" : option.label}
                     </Text>
                 </Pressable>
             ))}
-            {selected?.toLowerCase() === "na" && ( // Assuming 2 is for "n/a"
+            {selected.substr(-1) == "2" && (
                 <TextInput
                     style={styles.textInput}
                     placeholder="Please provide details..."
-                    value={naRemarks}
-                    onChangeText={setNaRemarks}
+                    value={nARemarks}
+                    onChangeText={(text) => {
+                        setSelectedValue({ value: selected, naData: text });
+                        // ***Remove label key
+                    }}
                 />
             )}
         </View>
@@ -40,13 +52,6 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         paddingHorizontal: 20,
         elevation: 2,
-        // shadowColor: '#000',
-        // shadowOffset: {
-        //     width: 0,
-        //     height: 1,
-        // },
-        // shadowOpacity: 0.2,
-        // shadowRadius: 1.5,
         marginVertical: 5,
         alignItems: 'center',
     },
@@ -67,7 +72,10 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         paddingHorizontal: 8,
         marginTop: 10,
+        backgroundColor: "#fff"
     },
 });
+
+
 
 export default React.memo(RadioButtonGroup);

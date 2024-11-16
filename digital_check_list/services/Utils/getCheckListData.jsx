@@ -3,6 +3,7 @@ import axios from 'axios';
 // Fetch data from the first API (Main Header)
 export const fetchHeaderData = async (setHeaderData, setLoading, setError) => {
   try {
+    setLoading(true);
     const response = await axios.get('http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains?taskid=16');
     const fetchedHeaderData = response.data;
 
@@ -42,23 +43,127 @@ export const fetchSubHeaderData = async (setSubHeaderData, setLoading, setError)
   }
 };
 
-// Fetch data from the third API (Questions)
-export const fetchQuestions = async (setQuestionsData, setLoading, setError) => {
-  try {
-    const response = await axios.get('http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains_without_header?taskid=16');
-    const fetchedQuestions = response.data;
+// Fetch data from the third API (Sub Header Value)
 
-    if (!fetchedQuestions || fetchedQuestions.length === 0) {
-      throw new Error('Fetched questions data is empty or invalid.');
+export const fetchSubHeaderValue = async (setSubHeaderValue, setLoading, setError , params) => {
+  try {
+    //const response = await axios.get('http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains_Header_Value?taskid=16&ip_number=DELIP504639');
+    const response = await axios.get(`http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains_Header_Value?taskid=16&ip_number=${params?.ipnumber}`);
+    const fetchedSubHeaderValue = response.data;
+
+    if (!fetchedSubHeaderValue || fetchedSubHeaderValue.length === 0) {
+      throw new Error('Fetched sub-header value is empty or invalid.');
     }
 
-    console.log('Fetched Questions Data:', fetchedQuestions);
-    setQuestionsData(fetchedQuestions); // Set fetched questions data
+    console.log('Fetched Sub-Header Value:', fetchedSubHeaderValue);
+    setSubHeaderValue(fetchedSubHeaderValue); // Set fetched sub-header data
   } catch (error) {
-    console.error('Error fetching questions:', error.message);
-    setError('Error fetching questions.');
+    console.error('Error fetching sub-header data:', error.message);
+    setError('Error fetching sub-header data.');
   } finally {
-    console.log("API 3");
-    setLoading(false); // Set loading to false
+    console.log("Api 2");
+    //setLoading(false); // Set loading to false
   }
 };
+
+const apiInstance = async ({ method = "GET", url, body }) => {
+
+  try {
+    let response;
+    if (method === "GET")
+      response = await axios.get('http://10.10.9.89:203/api/' + url);
+    else response = await axios.post('http://10.10.9.89:203/api/' + url, body, {});
+
+
+    const fetchedSubHeaderValue = response.data;
+
+    if (!fetchedSubHeaderValue || fetchedSubHeaderValue.length === 0) {
+      throw new Error('Unknown Error!');
+    }
+
+    // console.table(fetchedSubHeaderValue);
+
+    return {
+      data: fetchedSubHeaderValue,
+      error: null,
+      status: 200
+    }
+
+  } catch (error) {
+    console.error('Error fetching sub-header data:', error);
+
+    return {
+      data: null,
+      error: error.message,
+      status: 501
+    }
+
+  } finally {
+    console.log("Api 2");
+    //setLoading(false); // Set loading to false
+  }
+}
+
+
+// export const fetchQuestions = async (setQuestionsData, setLoading, setError) => {
+//   const fetchedQuestions = await apiInstance({ url: "Users/DynamicFormDatadetails_Mains_without_header?taskid=16" });
+
+
+//   if (fetchedQuestions.status == "200") {
+
+//     const modifiedData = fetchedQuestions?.data?.map((item) => {
+//       return {
+//         ...item,
+//         selection: "",
+//         natext: "",
+//         headerName: item.headerName ? item.headerName : "",
+//         headerId: item.headerId ? item.headerId : "",
+//         isMainHeader: JSON.stringify(item.isMainHeader)
+
+//       }
+//     })
+
+//     console.table(modifiedData);
+
+//     setQuestionsData(modifiedData);
+//   } else setError('Error fetching questions.');
+
+//   setLoading(false);
+
+// };
+
+
+
+export const fetchCheckListData = async (setQuestionsData, setLoading, setError) => {
+  const fetchedCheckListData = await apiInstance({ url: "Users/CheckListDataBind?taskid=16&delip=22" });
+
+
+  if (fetchedCheckListData.status == "200") {
+
+
+    console.log('dd');
+    console.table(fetchedCheckListData.data);
+
+    setQuestionsData(fetchedCheckListData.data);
+  } else setError('Error fetching questions.');
+
+
+};
+
+export const fetchCheckListDetails = async (setcheckListDetails, setLoading, setError , params) => {
+  //const fetchedCheckListData = await apiInstance({ url: "Users/CheckListDetails?cid=16&delip=22" });
+   const fetchedCheckListData = await apiInstance({ url: "Users/CheckListDetails?cid=16&delip=${params?.ipnumber}" });
+
+
+  if (fetchedCheckListData.status == "200") {
+
+
+    console.log('setcheckListDetails');
+    console.table(fetchedCheckListData.data);
+
+    setcheckListDetails(fetchedCheckListData.data);
+  } else setError('Error fetching questions.');
+
+
+};
+
