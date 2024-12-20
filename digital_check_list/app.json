@@ -18,7 +18,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "newArchEnabled": true
+
       },
       "package": "com.abhishek_kumar050490.digital_check_list"
     },

@@ -39,6 +39,9 @@ export default function Layout() {
           <Stack.Screen
             name="applist"
             options={{ headerShown: false }} />
+            <Stack.Screen name="Digital_Pass/passPage" options={{
+            title: "Patient Visitor Pass"
+          }} />
         </Stack>
       </Provider>
     </SafeAreaView>

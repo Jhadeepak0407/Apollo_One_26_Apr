@@ -19,7 +19,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const menuItems = [
   { name: "Digital CheckList", icon: "checklist", color: "#4CAF50", route: "Digital_Checklist_App/TriggeredChecklist" },
   { name: "OT Booking", icon: "event", color: "#F44336" },
-  { name: "Digital Pass", icon: "trending-up", color: "#E91E63" },
+  { name: "Digital Pass", icon: "trending-up", color: "#E91E63" , route: "Digital_Pass/home" },
   { name: "Doctor HandsOff", icon: "person", color: "#FF9800" },
   { name: "Credential & Privilege", icon: "school", color: "#2196F3" },
   { name: "Discharge Tracker", icon: "store", color: "#8BC34A" },
@@ -94,10 +94,10 @@ const HomeScreen = () => {
             navigation.navigate('Digital_Checklist_App/TriggeredChecklist');
             break;
           case "OT Booking":
-            navigation.navigate('otBooking');
+            navigation.navigate('Digital_Pass/passPage');
             break;
           case "Digital Pass":
-            navigation.navigate('digitalPass');
+            navigation.navigate('Digital_Pass/home');
             break;
           case "Doctor HandsOff":
             navigation.navigate('doctorHandOff');
