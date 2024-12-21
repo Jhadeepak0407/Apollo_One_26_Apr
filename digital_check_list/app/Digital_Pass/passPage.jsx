@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { checkIn, checkOut, fetchVisitorDetails, getIVRCall } from "../../services/Utils/api/axiosAPI";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import showToast from "../../services/Utils/toasts/toastConfig";
 import Toast from "react-native-toast-message";
 import { faL } from "@fortawesome/free-solid-svg-icons";
@@ -140,7 +140,7 @@ export default function App() {
         setLoadingCheckIn(false);
         setLoading(false);
       } else {
-        showToast('error', 'Only 3 Attendants can check-in at a time.', '', 'blue');
+        showToast('error', response?.message, '', 'blue');
         setLoadingCheckIn(false);
         setLoading(false);
       }
@@ -185,37 +185,37 @@ export default function App() {
           {/* Visitor Info */}
           <View style={styles.infoContainer}>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Name:</Text>
+              <Text style={styles.infoLabel}>Name :</Text>
               <Text style={styles.infoValue}>{visitorPassData[0].name}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>UHID:</Text>
+              <Text style={styles.infoLabel}>IPID :</Text>
               <Text style={styles.infoValue}>{visitorPassData[0].ipid}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Department:</Text>
+              <Text style={styles.infoLabel}>Ward :</Text>
               <Text style={styles.infoValue}>{visitorPassData[0].ward}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Consultant:</Text>
+              <Text style={styles.infoLabel}>Bed :</Text>
               <Text style={styles.infoValue}>{visitorPassData[0].bed}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Procedure:</Text>
+              <Text style={styles.infoLabel}>Doctor :</Text>
               <Text style={styles.infoValue}>{visitorPassData[0].doctor}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Date & Time:</Text>
+              <Text style={styles.infoLabel}>Valid Till :</Text>
               <Text style={styles.infoValue}>
-                {new Date(visitorPassData[0].valiD_TILL).toLocaleString()}
+                {(visitorPassData[0].valiD_TILL)}
               </Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Max Attendants:</Text>
+              <Text style={styles.infoLabel}>Max. Attendants :</Text>
               <Text style={styles.infoValue}>{visitorPassData[0].allowedVistor}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Attendants Visited:</Text>
+              <Text style={styles.infoLabel}>Attendants Visited :</Text>
               <Text style={styles.infoValue}>{visitorPassData[0].no_of_visitor}</Text>
             </View>
           </View>
@@ -225,7 +225,7 @@ export default function App() {
             <ScrollView style={styles.listContainer}>
               {visitorPassData.map((visitor, index) => (
                 <View key={index} style={styles.attendantContainer}>
-                  <Text style={styles.attendantText}>{visitor.attendantLabel}</Text>
+                  <Text style={styles.attendantText}>{visitor.attendantLabel } :</Text>
                   <Text style={styles.attendantText}>{visitor.checked_in_time}</Text>
                   <View
                     style={[styles.attendantStatus, { backgroundColor: visitor.checked_out_time ? "green" : "blue" }]}
@@ -290,8 +290,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logo: {
-    width: 120,
-    height: 60,
+    width: 180,
+    height: 90,
     resizeMode: "contain",
   },
   title: {

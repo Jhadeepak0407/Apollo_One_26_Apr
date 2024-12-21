@@ -39,9 +39,17 @@ export default function Layout() {
           <Stack.Screen
             name="applist"
             options={{ headerShown: false }} />
-            <Stack.Screen name="Digital_Pass/passPage" options={{
-            title: "Patient Visitor Pass"
-          }} />
+            
+
+            <Stack.Screen
+  name="Digital_Pass/passPage"
+  options={{
+    title: "Patient Visitor Pass",
+    headerTitleAlign: 'center',  // Centers the title
+  }}
+/>
+
+           
         </Stack>
       </Provider>
     </SafeAreaView>
