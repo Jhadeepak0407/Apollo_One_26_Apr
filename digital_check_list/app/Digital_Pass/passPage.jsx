@@ -4,15 +4,18 @@ import { checkIn, checkOut, fetchVisitorDetails, getIVRCall } from "../../servic
 import { Stack, useLocalSearchParams } from "expo-router";
 import showToast from "../../services/Utils/toasts/toastConfig";
 import Toast from "react-native-toast-message";
-import { faL } from "@fortawesome/free-solid-svg-icons";
+import { useNavigation } from 'expo-router';
+
 export default function App() {
   const [visitorPassData, setVisitorPassData] = useState([]);
   const [loading, setLoading] = useState(false);
   const params = useLocalSearchParams();
+  const [dataLoading, setDataLoading] = useState(true);
 
   const [loadingCheckIn, setLoadingCheckIn] = useState(false);
   const [loadingCheckOut, setLoadingCheckOut] = useState(false);
   const [loadingIVRCall, setLoadingIVRCall] = useState(false);
+  const navigation = useNavigation(); // Navigation from expo-router
 
 
   const API_ENDPOINTS = {
@@ -23,17 +26,17 @@ export default function App() {
     base: "http://10.10.9.89:203/api/DigitalPass"
   };
 
-  console.log(params.authKey);
-  const AUTH_KEY = params?.authKey || "FAAECC74-ED13-4EEB-8F9B-D4CC8A2FDA85";
+   const AUTH_KEY = params?.authKey || "FAAECC74-ED13-4EEB-8F9B-D4CC8A2FDA85";
+  // const AUTH_KEY = 'BBA7BFC8-AAD7-46DB-9779-AAA5AF231E36'
   const delip = visitorPassData[0]?.ipid || 'DELIP482114';
-
+  
   const getVisitorDetails2 = async () => {
     try {
       const response = await fetchVisitorDetails(API_ENDPOINTS.visitorDetails, AUTH_KEY);
-      console.log("Visitor Details:");
       setVisitorPassData(response);
+
     } catch (error) {
-      console.error("Error fetching visitor details:", error);
+
     } finally {
     }
   };
@@ -44,11 +47,31 @@ export default function App() {
 
     const getVisitorDetails = async () => {
       try {
+        setDataLoading(true);
+
         const response = await fetchVisitorDetails(API_ENDPOINTS.visitorDetails, AUTH_KEY);
-        console.log("Visitor Details:");
+        
         setVisitorPassData(response);
+
+        if (response && response[0].pass_Type === 'Ward') {
+          console.log(1);
+          // Update the title if the pass type is '24 Hrs'
+          navigation.setOptions({
+            title: 'Patient Visitor Pass', // Dynamic title based on pass type
+          });
+        } else {
+          console.log(2);
+
+          // Default title if the pass type is different
+          navigation.setOptions({
+            title: 'Patient Attendant Pass',
+          });
+        }
+        setDataLoading(false);
+
       } catch (error) {
-        console.error("Error fetching visitor details:", error);
+        setDataLoading(false);
+
       } finally {
       }
     };
@@ -62,10 +85,8 @@ export default function App() {
       setLoadingIVRCall(true);
       setLoading(true);
 
-      console.log(3)
 
       const phoneNumber = visitorPassData[0]?.attendantNo || "8700871587";
-      console.log("Calling IVR for:", phoneNumber);
       const response = await getIVRCall(API_ENDPOINTS.ivrCall, phoneNumber);
       if (response === 'Fail') {
         showToast('error', 'IVR call failed', '', text1color = 'red');
@@ -78,9 +99,7 @@ export default function App() {
         setLoading(false);
 
       }
-      console.log("IVR Call Response:", response);
     } catch (error) {
-      console.error("Error during IVR Call:", error);
       setLoadingIVRCall(false);
       setLoading(false);
 
@@ -93,13 +112,11 @@ export default function App() {
       setLoadingCheckOut(true);
       setLoading(true);
 
-      console.log(2)
 
-      console.log("Checking out with auth key:", AUTH_KEY);
-      const response = await checkOut(API_ENDPOINTS.checkOut, AUTH_KEY);
-      console.log(response);
+      const passType = visitorPassData[0]?.pass_Type ;
+      console.log(passType);
+      const response = await checkOut(API_ENDPOINTS.base, AUTH_KEY , passType);
       if (response === "Success") {
-        console.log("yes");
         showToast('success', 'Checked Out Successfully', '', text1color = 'green');
 
         getVisitorDetails2();
@@ -109,11 +126,9 @@ export default function App() {
         setLoading(false);
 
       }
-      console.log("Checkout Response:", response);
     } catch (error) {
       showToast('error', 'Checkout Failed', '', text1color = 'red');
 
-      console.error("Error during checkout:", error);
       // Optionally, you can show an error message in the toast
       setLoadingCheckOut(false);
       setLoading(false);
@@ -125,15 +140,14 @@ export default function App() {
   // Handle CheckIn
   const handleCheckIn = async () => {
     try {
-      console.log(1)
       setLoadingCheckIn(true);
       setLoading(true);
 
-      console.log("Checking In with auth key:", AUTH_KEY);
-      const response = await checkIn(API_ENDPOINTS.base, AUTH_KEY, delip);
+      const passType = visitorPassData[0]?.pass_Type ;
+      console.log('Pass Type (Check IN) = >' , passType)
+      const response = await checkIn(API_ENDPOINTS.base, AUTH_KEY, delip , passType);
 
       if (response.status === "Success") {
-        console.log("yes");
         showToast('success', 'Checked In Successfully', '', 'blue');
 
         getVisitorDetails2(); // Ensure this is awaited if it's async
@@ -145,25 +159,24 @@ export default function App() {
         setLoading(false);
       }
 
-      console.log("CheckIn Response:", response);
     } catch (error) {
-      console.error("Error during checkin:", error);
       showToast('error', 'Checkin Failed', 'An error occurred during checkin. Please try again.', 'blue');
       setLoadingCheckIn(false);
       setLoading(false);
     }
   };
 
-  // if (loading) {
-  //   return (
-  //     <View style={styles.loadingContainer}>
-  //       <ActivityIndicator size="large" color="#FF4C00" />
-  //       <Text style={styles.loadingText}>Loading...</Text>
-  //     </View>
-  //   );
-  // }
+   if (dataLoading) {
+    return (
+     <View style={styles.loadingContainer}>
+       <ActivityIndicator size="large" color="#FF4C00" />
+     </View>
+    );
+   }
 
   return (
+
+    visitorPassData.length > 0 &&   visitorPassData[0].requestedby ==="10701" ?
     <View style={styles.container}>
       {/* Logo */}
       <View style={styles.logoContainer}>
@@ -207,37 +220,46 @@ export default function App() {
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Valid Till :</Text>
               <Text style={styles.infoValue}>
-                {(visitorPassData[0].valiD_TILL)}
+                {visitorPassData[0].pass_Type == '24 Hrs' ? 'Discharge' :(visitorPassData[0].valiD_TILL)}
               </Text>
             </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Max. Attendants :</Text>
-              <Text style={styles.infoValue}>{visitorPassData[0].allowedVistor}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Attendants Visited :</Text>
-              <Text style={styles.infoValue}>{visitorPassData[0].no_of_visitor}</Text>
-            </View>
+
+            {
+  visitorPassData[0].pass_Type == '24 Hrs' ? null : (
+    <>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>Max. Attendants :</Text>
+        <Text style={styles.infoValue}>{visitorPassData[0].allowedVistor}</Text>
+      </View>
+      <View style={styles.infoRow}>
+        <Text style={styles.infoLabel}>Attendants Visited :</Text>
+        <Text style={styles.infoValue}>{visitorPassData[0].no_of_visitor}</Text>
+      </View>
+    </>
+  )
+}
+
           </View>
 
           {/* Scrollable List */}
-          {visitorPassData[0].no_of_visitor > 0 ? (
-            <ScrollView style={styles.listContainer}>
-              {visitorPassData.map((visitor, index) => (
-                <View key={index} style={styles.attendantContainer}>
-                  <Text style={styles.attendantText}>{visitor.attendantLabel } :</Text>
-                  <Text style={styles.attendantText}>{visitor.checked_in_time}</Text>
-                  <View
-                    style={[styles.attendantStatus, { backgroundColor: visitor.checked_out_time ? "green" : "blue" }]}
-                  />
-                </View>
-              ))}
-            </ScrollView>
-          ) : (
-            <View style={styles.noVisitorsContainer}>
-              <Text style={styles.noVisitorsText}>No attendants have visited yet.</Text>
-            </View>
-          )}
+          {visitorPassData[0].no_of_visitor > 0 && visitorPassData[0].attendantLabel != '' > 0  ? (
+  <ScrollView style={styles.listContainer}>
+    {visitorPassData.map((visitor, index) => (
+      <View key={index} style={styles.attendantContainer}>
+        <Text style={styles.attendantText}>{visitor.attendantLabel} :</Text>
+        <Text style={styles.attendantText}>{visitor.checked_in_time}</Text>
+        <View
+          style={[styles.attendantStatus, { backgroundColor: visitor.checked_out_time ? "green" : "blue" }]}
+        />
+      </View>
+    ))}
+  </ScrollView>
+) : (
+  <View style={styles.noVisitorsContainer}>
+    <Text style={styles.noVisitorsText}>No attendants have visited yet.</Text>
+  </View>
+)}
+
         </>
       )}
 
@@ -276,10 +298,30 @@ export default function App() {
 
 
     </View>
+
+    :
+
+    <View style={styles.invalidPassTextcontainer}>
+    <Text style={styles.invalidPassText}>INVALID PASS</Text>
+  </View>
   );
 }
 
 const styles = StyleSheet.create({
+
+
+  invalidPassTextcontainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff', // White background
+  },
+  invalidPassText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ff0000', // Red color for the text
+    textAlign: 'center',
+  },
   container: {
     flex: 1,
     backgroundColor: "#fff",
@@ -403,6 +445,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     fontSize: 14,
+  },loadingContainer: {
+    flex: 1, // Takes the full space available
+    justifyContent: 'center', // Centers vertically
+    alignItems: 'center', // Centers horizontally
+    backgroundColor: '#fff', // Optional: To set a background color
   },
 });
 

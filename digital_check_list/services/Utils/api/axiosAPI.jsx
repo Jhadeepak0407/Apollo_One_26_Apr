@@ -43,12 +43,17 @@ export const fetchVisitorDetails = (baseUrl, authKey) =>
 export const getIVRCall = (baseUrl, phoneNumber) =>
   apiInstance({ method: "GET", url: `${baseUrl}/${phoneNumber}` });
 
-export const checkOut = (baseUrl, authKey) =>
-  apiInstance({ method: "GET", url: `${baseUrl}/${authKey}` });
+// export const checkOut = (baseUrl, authKey) =>
+//   apiInstance({ method: "GET", url: `${baseUrl}/${authKey}` });
 
-export const checkIn = (baseUrl, authKey, delip) =>
+export const checkOut = (baseUrl, authKey , pass_type) =>
   apiInstance2({ 
     method: "GET", 
-    url: `${baseUrl}/CheckIn?authKey=${authKey}&ipNumber=${delip}` 
+    url: `${baseUrl}/CheckOut/${authKey}?pass_type=${pass_type}` 
+  });
+export const checkIn = (baseUrl, authKey, delip, pass_type) =>
+  apiInstance2({ 
+    method: "GET", 
+    url: `${baseUrl}/CheckIn?authKey=${authKey}&ipNumber=${delip}&pass_type=${pass_type}` 
   });
 export default apiInstance;

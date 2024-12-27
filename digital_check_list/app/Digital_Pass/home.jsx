@@ -14,7 +14,7 @@ export default function Home() {
 
   const processQRCode = (data) => {
     if (data && !qrLock.current) {
-      qrLock.current = true;
+      qrLock.current = false;
       setTimeout(async () => {
         try {
           console.log(data);

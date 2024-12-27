@@ -20,7 +20,6 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff",
         "newArchEnabled": true
-
       },
       "package": "com.abhishek_kumar050490.digital_check_list"
     },
@@ -47,8 +46,10 @@
     "extra": {
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "ea2cc15a-c235-4d12-b56c-6afbee88e127"
       }
-      
     },
     "runtimeVersion": {
       "policy": "appVersion"

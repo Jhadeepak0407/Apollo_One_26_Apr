@@ -33,12 +33,65 @@ const HomeScreen = () => {
   const [alertVisible, setAlertVisible] = useState(false);
   const navigation = useRouter();
 
+
+   // On page load, read `selectedLocation` from local storage and set it
+   useEffect(() => {
+    const loadLocation = async () => {
+      try {
+        const authDataJson = await AsyncStorage.getItem("auth"); // Retrieve auth data from AsyncStorage
+        if (authDataJson) {
+          const authData = JSON.parse(authDataJson); // Parse the stored auth data
+          if (authData.selectedLocation) {
+            setLocation(authData.selectedLocation); // Set the location from AsyncStorage
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load authData from AsyncStorage:', error);
+      }
+    };
+
+    loadLocation();
+  }, []); // Empty dependency array ensures this runs only on page load
+
+
+  function handleLocationChange(item) {
+    const newValue = item.value;
+    
+    // Retrieve the current `AuthData` object from AsyncStorage
+    AsyncStorage.getItem("auth")
+      .then((authDataJson) => {
+        if (authDataJson) {
+          // Parse the auth data
+          let authData = JSON.parse(authDataJson);
+  
+          // Check if `authData` exists and has a non-null `id`
+          if (authData && authData.id !== null) {
+            // Add or update the `selectedLocation` key
+            authData.selectedLocation = newValue;
+  
+            // Save the updated object back to AsyncStorage
+            AsyncStorage.setItem("auth", JSON.stringify(authData))
+              .then(() => {
+              })
+              .catch((error) => {
+              });
+          }
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load authData:', error);
+      });
+  
+    // Update component state or perform additional logic
+    setLocation(newValue);
+  }
+
+
   useEffect(() => {
     try {
       axios
         .get("http://10.10.9.89:203/api/Users/GetAllLocationList")
         .then((response) => {
-          // console.log("APPLIST API => ", response)
           const fetchedLocations = response.data.map((loc) => ({
             value: loc.location_Id,
             label: loc.location_Display_Name,
@@ -162,9 +215,8 @@ const HomeScreen = () => {
           value={location}
           search
           searchPlaceholder="Search..."
-          onChange={(item) => {
-            setLocation(item.value);
-          }}
+          onChange={(item) => handleLocationChange(item)}
+
           placeholder="Select a location"
           style={styles.dropdown}
           containerStyle={styles.dropdownContainerStyle}
