@@ -14,6 +14,7 @@ const MainPage = () => {
   const [error, setError] = useState(null);
 
   const params = useLocalSearchParams();
+
   const router = useRouter(); // Get router object from Expo Router
 
   useEffect(() => {
@@ -29,7 +30,7 @@ const MainPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        await fetchHeaderData(setHeaderData, setLoading, setError);
+        await fetchHeaderData(setHeaderData, setLoading, setError,);
         await fetchSubHeaderValue(setSubHeaderValue, setLoading, setError, params);
         await fetchCheckListDetails(setcheckListDetails, setLoading, setError, params);
       } catch (err) {
@@ -61,7 +62,7 @@ const MainPage = () => {
       questions: checkListDetails,
     };
 
-    console.log(finalData);
+    console.log("Draft",finalData);
     try {
       const response = await updateFormData(finalData);
       if(response.status = "200"){
@@ -81,6 +82,8 @@ const MainPage = () => {
       header: subHeaderValue,
       questions: checkListDetails,
     };
+
+    console.log("finalData",finalData);
 
     try {
       const response = await saveFormData(finalData);

@@ -17,7 +17,7 @@ import { useDispatch } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const menuItems = [
-  { name: "Digital CheckList", icon: "checklist", color: "#4CAF50", route: "Digital_Checklist_App/TriggeredChecklist" },
+  { name: "Digital CheckList", icon: "checklist", color: "#4CAF50", route: "Digital_Checklist_App/TypeofCheckList" },
   { name: "OT Booking", icon: "event", color: "#F44336" },
   { name: "Digital Pass", icon: "trending-up", color: "#E91E63" , route: "Digital_Pass/home" },
   { name: "Doctor HandsOff", icon: "person", color: "#FF9800" },
@@ -91,7 +91,7 @@ const HomeScreen = () => {
         // Navigate to the selected page if location is selected
         switch (item.name) {
           case "Digital CheckList":
-            navigation.navigate('Digital_Checklist_App/TriggeredChecklist');
+            navigation.navigate('Digital_Checklist_App/TypeofCheckList');
             break;
           case "OT Booking":
             navigation.navigate('Digital_Pass/passPage');

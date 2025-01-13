@@ -81,28 +81,51 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
   },
-  dropdown: {
-    borderColor: "#A490F6",
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 5,
-  },
-  dropdownContainer: {
-    backgroundColor: "#fff",
-    position: "absolute",
-    top: "5%",
-    left: "5%",
-    right: "5%",
-    bottom:"auto",
-    borderRadius: 10,
-    borderColor: "#A490F6",
-    borderWidth: 1,
-    padding: 10,
-    zIndex: 100,
-    maxHeight: "100%", 
-    color:"black",
+dropdown: {
+  borderColor: "#5A67D8", // A more muted, professional color
+  borderWidth: 1.5,
+  padding: 12,
+  borderRadius: 8,
+  backgroundColor: "#F9FAFB", // Subtle light background
+  color: "#2D3748", // Dark gray for text
+  fontSize: 14,
+  fontFamily: "Arial, sans-serif", // Professional font
+},
+dropdownContainer: {
+  backgroundColor: "#FFFFFF",
+  position: "absolute",
+  top: "5%",
+  left: "5%",
+  right: "5%",
+  bottom: "auto",
+  borderRadius: 10,
+  borderColor: "#CBD5E0", // Subtle border
+  borderWidth: 1.5,
+  padding: 12,
+  zIndex: 100,
+  maxHeight: "80%", // Reduce max height for better UX
+  boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)", // Add shadow for a floating effect
+  color: "#1A202C", // Adjust text color for better contrast
+  fontSize: 14,
+  overflow: "auto", // Scroll if options exceed container height
+},
+dropdownItem: {
+  paddingVertical: 10,
+  paddingHorizontal: 15,
+  borderBottomColor: "#E2E8F0",
+  borderBottomWidth: 1,
+  fontSize: 14,
+  color: "#4A5568",
+},
+dropdownItemHover: {
+  backgroundColor: "#E2E8F0", // Highlighted background on hover
+  color: "#2D3748",
+},
+dropdownItemSelected: {
+  backgroundColor: "#5A67D8", // Highlighted for selected item
+  color: "#FFFFFF",
+},
 
-  },
   searchTextInputStyle: {
     borderBottomColor: "#A490F6",
     borderBottomWidth: 1,

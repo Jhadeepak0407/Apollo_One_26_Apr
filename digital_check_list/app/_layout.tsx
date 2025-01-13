@@ -5,7 +5,7 @@ import { store } from "@/redux/store";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { View, StatusBar } from "react-native"
+import { View, StatusBar ,TouchableOpacity,Text} from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Layout() {
@@ -33,9 +33,10 @@ export default function Layout() {
             headerShown: true,
           }}
         >
-          <Stack.Screen name="Digital_Checklist_App/TriggeredChecklist" options={{
-            title: "Checklist"
-          }} />
+ {/* <Stack.Screen name="Digital_Checklist_App/TriggeredChecklist" options={{
+            title: "Triggered Checklist"
+          }} />  */}
+
           <Stack.Screen
             name="applist"
             options={{ headerShown: false }} />
@@ -48,7 +49,13 @@ export default function Layout() {
     headerTitleAlign: 'center',  // Centers the title
   }}
 />
-
+{/* <Stack.Screen
+  name="Digital_Checklist_App/TypeofCheckList"
+  options={{
+    title: "Type of CheckList",
+    headerTitleAlign: 'center',  // Centers the title
+  }}
+/> */}
            
         </Stack>
       </Provider>

@@ -11,10 +11,10 @@ export const fetchDepartments = async (locationId) => {
     }
   };
   
-  export const fetchCheckLists = async (locationId, departmentId) => {
+  export const fetchCheckLists = async (locationId, departmentId,ctid) => {
     try {
       const response = await fetch(
-        `http://10.10.9.89:203/api/Users/CheckListMasterListByDepartment?locationid=${locationId}&departmentid=${departmentId}`
+        `http://10.10.9.89:203/api/Users/CheckListMasterListByDepartment?locationid=${locationId}&departmentid=${departmentId}&ctid=${ctid}`
       );
       const data = await response.json();
       return data;
