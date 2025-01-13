@@ -7,6 +7,7 @@ import {
   Animated,
   Easing,
   Modal,
+  Image,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
@@ -16,14 +17,16 @@ import { Stack, useRouter } from "expo-router";
 import { useDispatch } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+
 const menuItems = [
   { name: "Digital CheckList", icon: "checklist", color: "#4CAF50", route: "Digital_Checklist_App/TriggeredChecklist" },
   { name: "OT Booking", icon: "event", color: "#F44336" },
-  { name: "Digital Pass", icon: "trending-up", color: "#E91E63" , route: "Digital_Pass/home" },
+  { name: "Digital Pass", icon: "trending-up", color: "#E91E63", route: "Digital_Pass/home", image: require('../assets/images/digital_pass_icon.png') },
   { name: "Doctor HandsOff", icon: "person", color: "#FF9800" },
   { name: "Credential & Privilege", icon: "school", color: "#2196F3" },
   { name: "Discharge Tracker", icon: "store", color: "#8BC34A" },
 ];
+
 
 const HomeScreen = () => {
   const [locations, setLocations] = useState([null]);
@@ -147,10 +150,10 @@ const HomeScreen = () => {
             navigation.navigate('Digital_Checklist_App/TriggeredChecklist');
             break;
           case "OT Booking":
-            navigation.navigate('Digital_Pass/passPage');
+            navigation.navigate('Digital_Pass/123');
             break;
           case "Digital Pass":
-            navigation.navigate('Digital_Pass/home');
+            navigation.navigate('Digital_Pass/fileUpload');
             break;
           case "Doctor HandsOff":
             navigation.navigate('doctorHandOff');
@@ -173,18 +176,26 @@ const HomeScreen = () => {
     };
     return (
       <Animated.View style={[styles.menuItem, animatedStyle]}>
-        <TouchableOpacity
-          style={[styles.menuButton, { backgroundColor: item.color }]}
-          onPress={() => {
-            ////  navigation.navigate(item.route);
-            navigateToPage();
-          }}
-        /////onPress={navigateToPage}
-        >
+      <TouchableOpacity
+        style={[styles.menuButton, { backgroundColor: item.color }]}
+        onPress={() => {
+          navigateToPage();
+        }}
+      >
+        {item.image ? (
+          // Render an image if the item has an `image` property
+          <Image
+  source={item.image}
+  style={{ width: 110, height: 110, resizeMode: "contain" }}
+/>
+        ) : (
+          // Otherwise, render the MaterialIcons icon
           <MaterialIcons name={item.icon} size={40} color="white" />
-        </TouchableOpacity>
-        <Text style={styles.menuText}>{item.name}</Text>
-      </Animated.View>
+        )}
+      </TouchableOpacity>
+      <Text style={styles.menuText}>{item.name}</Text>
+    </Animated.View>
+    
     );
   };
 

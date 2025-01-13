@@ -21,7 +21,7 @@ const showToast = (type, text1, text2, text1color) => {
       },
       text1Style: {
         color: text1color,
-        fontSize: 10,
+        fontSize: 16,
         fontWeight: 'normal',
         flexWrap: 'wrap', // Ensures text wraps
       },

@@ -21,8 +21,8 @@ import { LoginRequest } from "../redux/actions/loginActions";
 const logo = require("../assets/digital_check_list/images/apollo-logo.png");
 
 const LoginScreen = () => {
-  const [username, setUsername] = useState("apolloadmin");
-  const [password, setPassword] = useState("apolloadmin");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [isPasswordVisible, setPasswordVisible] = useState(false);
   const [usernameError, setUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");

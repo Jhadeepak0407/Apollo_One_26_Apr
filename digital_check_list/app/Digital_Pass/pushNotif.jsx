@@ -1,81 +1,104 @@
 import React, { useState } from 'react';
-import { Modal, Text, View, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { Button, Image, View, StyleSheet, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
-const PushMessage = () => {
-  const [visible, setVisible] = useState(false);
+export default function ImagePickerExample() {
+  const [image, setImage] = useState(null);
 
-  const showMessage = () => {
-    setVisible(true);
-    setTimeout(() => {
-      setVisible(false); // Hide after 3 seconds
-    }, 3000);
+  const pickFromCamera = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (permissionResult.status !== 'granted') {
+      alert('Camera access is required!');
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
   };
 
-  return (
-    <>
-      {/* Button to trigger push message */}
-      <TouchableOpacity onPress={showMessage} style={styles.triggerButton}>
-        <Text style={styles.buttonText}>Show Push Message</Text>
-      </TouchableOpacity>
+  const pickFromLibrary = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
 
-      {/* Modal for Push Message */}
-      <Modal transparent={true} visible={visible} animationType="fade">
-        <View style={styles.overlay}>
-          <View style={styles.messageBox}>
-            <Text style={styles.title}>Hello, NOOBDE!</Text>
-            <Text style={styles.message}>
-              This is a popup message that will close shortly. 🎉
-            </Text>
-          </View>
-        </View>
-      </Modal>
-    </>
+    console.log(result);
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!image) {
+      Alert.alert('No Image Selected', 'Please select an image to upload.');
+      return;
+    }
+   
+    const formData = new FormData();
+    // Extract the original file name or use a fallback
+    const fileName = image.split('/').pop() || `image_${Date.now()}.jpg`;
+   
+    formData.append('file', {
+      uri: image,
+      name: fileName, // Dynamic or original file name
+      type: 'image/jpeg', // Adjust MIME type based on your file
+    });
+   
+    try {
+      const response = await fetch('http://10.10.9.89:203/api/Upload/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+   
+      if (response.ok) {
+        Alert.alert('Upload Successful', 'The image has been uploaded.');
+        console.log('Image uploaded successfully.');
+        console.log(await response.json()); // Log response for debugging
+      } else {
+        const errorResponse = await response.json();
+        Alert.alert('Upload Failed', errorResponse.message || 'Failed to upload the image.');
+        console.error('Upload failed:', response.status, errorResponse);
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      Alert.alert('Error', 'An error occurred while uploading the image.');
+    }
+  };
+  
+
+  return (
+    <View style={styles.container}>
+      <Button title="Open Camera" onPress={pickFromCamera} />
+      <Button title="Pick an image from gallery" onPress={pickFromLibrary} />
+      {image && <Image source={{ uri: image }} style={styles.image} />}
+      <Button title="Upload Image" onPress={uploadImage} />
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  overlay: {
+  container: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dimmed background
   },
-  messageBox: {
-    width: Dimensions.get('window').width * 0.8, // Responsive width
-    padding: 20,
-    backgroundColor: '#333', // Dark background for the popup
-    borderRadius: 15,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5, // Shadow for Android
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#fff', // White title color
-  },
-  message: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 10,
-    color: '#ddd', // Light grey message text color
-  },
-  triggerButton: {
-    padding: 15,
-    backgroundColor: '#28a745',
-    borderRadius: 5,
-    alignSelf: 'center',
-    marginTop: 50,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+  image: {
+    width: 200,
+    height: 200,
+    marginVertical: 20,
   },
 });
-
-export default PushMessage;
