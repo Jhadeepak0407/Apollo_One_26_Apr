@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "digital_check_list",
+    "name": "Apollo One",
     "slug": "digital_check_list",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/apollologo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -17,10 +17,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/apollologo.png",
         "backgroundColor": "#ffffff",
         "newArchEnabled": true
-
       },
       "package": "com.abhishek_kumar050490.digital_check_list",
       "android": {
@@ -53,12 +52,12 @@
     "extra": {
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "ea2cc15a-c235-4d12-b56c-6afbee88e127"
       }
-      
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0" ,
     "updates": {
       "url": "https://u.expo.dev/ea2cc15a-c235-4d12-b56c-6afbee88e127"
     }
