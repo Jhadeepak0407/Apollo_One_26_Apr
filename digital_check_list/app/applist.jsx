@@ -153,7 +153,7 @@ const HomeScreen = () => {
             navigation.navigate('Digital_Pass/123');
             break;
           case "Digital Pass":
-            navigation.navigate('Digital_Pass/fileUpload');
+            navigation.navigate('Digital_Pass/home');
             break;
           case "Doctor HandsOff":
             navigation.navigate('doctorHandOff');
