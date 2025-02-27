@@ -54,7 +54,7 @@ const LoginScreen = () => {
     if (user?.token) {
       router.replace("/applist")
     }
-    console.log(user)
+    console.log('user'  , user)
   }, [user?.token])
 
   useEffect(() => {

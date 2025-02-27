@@ -80,6 +80,7 @@ const CustomDropdown = ({value,items,setValue,placeholder,searchPlaceholder,}) =
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+ 
   },
 dropdown: {
   borderColor: "#5A67D8", // A more muted, professional color

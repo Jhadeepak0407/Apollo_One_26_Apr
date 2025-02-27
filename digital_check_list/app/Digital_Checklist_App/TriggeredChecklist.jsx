@@ -9,12 +9,12 @@ import CustomAlert from "../../projects/digital_check_list/components/alertmessa
 import ConfirmCustomAlert from "../../projects/digital_check_list/components/confirmalert";
 import { fetchDepartments, fetchCheckLists, fetchMenuDetails } from "../../services/triggeredchecklistapi";
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from 'react-native-vector-icons'; // Import the icon library
+import { Ionicons } from 'react-native-vector-icons'; 
 
 const App = () => {
   const router = useRouter();
-  const { ctid } = useLocalSearchParams(); // Use useLocalSearchParams to access query params
- //// console.log("ctid", ctid);  // Logs the value of ctid
+  const { ctid } = useLocalSearchParams(); 
+
 
   const locationId = "10701";
   const [menu, setMenu] = useState([]);
@@ -29,8 +29,8 @@ const App = () => {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [filterStatus, setFilterStatus] = useState(null);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
-  const [alertVisible, setAlertVisible] = useState(false);  // Manages alert visibility
-  const [alertTitle, setAlertTitle] = useState("");         // Manages alert title
+  const [alertVisible, setAlertVisible] = useState(false);  
+  const [alertTitle, setAlertTitle] = useState("");     
   const [alertMessage, setAlertMessage] = useState("");
   const [isAlertVisible, setIsAlertVisible] = useState(false);
 
@@ -90,7 +90,7 @@ const App = () => {
         setIsMenuVisible(false);
       }
     } else {
-      // Set alert details and make it visible
+    
       setAlertTitle("Selection Required Fields");
 
       setAlertMessage("Please select a checklist and valid date range.");
@@ -99,22 +99,22 @@ const App = () => {
   };
 
   const handleClear = useCallback(() => {
-    setIsAlertVisible(true); // Show the custom alert modal
+    setIsAlertVisible(true); 
   }, []);
 
   const handleConfirmClear = () => {
-    // Perform the clear action when "OK" is pressed
+
     setSelectedDepartment("");
     setSelectedCheckList(null);
     setFromDate(new Date());
     setToDate(new Date());
     setMenu([]);
     setIsMenuVisible(false);
-    setIsAlertVisible(false); // Hide the alert after clearing
+    setIsAlertVisible(false); 
   };
 
   const handleCancelClear = () => {
-    // Close the alert when "Cancel" is pressed
+
     setIsAlertVisible(false);
   };
 
@@ -129,10 +129,10 @@ const App = () => {
                      options={{
                        title: 'Triggered Checklist',
                        statusBarColor: 'black',
-                       headerTitleAlign: 'center',  // Center the title
+                       headerTitleAlign: 'center',  
                        headerLeft: () => (
                          <TouchableOpacity onPress={() => router.push('/Digital_Checklist_App/TypeofCheckList')} style={{ marginLeft: 10 }}>
-                           <Ionicons name="arrow-back" size={24} color="black" /> {/* Back arrow icon */}
+                           <Ionicons name="arrow-back" size={24} color="black" /> 
                          </TouchableOpacity>
                          
                        ),
@@ -140,7 +140,7 @@ const App = () => {
                      }}
                    />
         <Text style={styles.label}>Department</Text>
-        {/* <Text>Checklist Type ID: {ctid}</Text> */}
+    
         <CustomDropdown
           open={openDeptDropdown}
           value={selectedDepartment}
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 5,
     fontFamily: "Mullish",
-    //color:'#999',
+  
     borderColor: "#A490F6",
   },
   menuList: {

@@ -70,7 +70,7 @@ const CustomDropdown = ({ value, items, setValue, placeholder, searchPlaceholder
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 5,
   },
   dropdown: {
     borderColor: "#5A67D8",
@@ -81,6 +81,8 @@ const styles = StyleSheet.create({
     color: "#2D3748",
     fontSize: 14,
     fontFamily: "Arial, sans-serif",
+
+   ///width:"50%"
   },
   textInput: {
     color: "#003366",

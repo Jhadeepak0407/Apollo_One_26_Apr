@@ -88,7 +88,11 @@ const ScheduleMenuItem = ({ item }) => {
 </View>
 <View style={styles.textRow}>
 <Text style={styles.ScheduleMenuItemText}>{item.taskName}</Text>
+<Text style={styles.hourFormat}>{item.hourFormat}</Text>
+
 </View>
+
+
 </View>
 </Pressable>
 </Animated.View>
@@ -123,12 +127,17 @@ const styles = StyleSheet.create({
     flexDirection: "column",  // Stack items vertically
   },
  
-  textRow: {
-    flexDirection: "row",
-    justifyContent: "flex-start",  // Align text to the left
-    marginBottom: 6,
-  },
+  // textRow: {
+  //   flexDirection: "row",
+  //   justifyContent: "flex-start",  // Align text to the left
+  //   marginBottom: 2,
+  // },
  
+  taskRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",  // Push hourFormat to the end
+    alignItems: "center",
+  },
   ScheduleMenuItemText: {
     fontSize: 16,
     color: "", // White text to contrast with the background color
@@ -159,6 +168,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "",
     fontWeight: "bold",
+  },
+  hourFormat: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "", // Different color for distinction
+    textAlign: "right", // Ensures it's aligned right
+    flex: 1, // Allows it to take available space
   },
 });
  
