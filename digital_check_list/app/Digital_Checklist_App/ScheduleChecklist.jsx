@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, FlatList, SafeAreaView  } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import CustomDatePicker from "../../projects/digital_check_list/components/getcustomdaterange";
-import FilterModal from "../../projects/digital_check_list/components/filterbox";
+import FilterModal from "../../projects/digital_check_list/components/filterboxschedule";
 import ScheduleMenuItem from "../../projects/digital_check_list/components/getmenuitemsforschedule";
 import CustomDropdown from "../../projects/digital_check_list/components/getdropdownschedule";
 import CustomAlert from "../../projects/digital_check_list/components/alertmessage";
@@ -14,8 +14,14 @@ import { Ionicons } from 'react-native-vector-icons'; // Import the icon library
 
 const App = () => {
   const router = useRouter();
-  const { ctid } = useLocalSearchParams(); // Use useLocalSearchParams to access query params
-  const locationId = "10701";
+  const { ctid,locationid  } = useLocalSearchParams(); // Use useLocalSearchParams to access query params
+  const locationId = locationid || "10701"; // Set default if undefined
+
+
+ useEffect(() => {
+  console.log("CTID:", ctid);
+  console.log("Location ID:", locationid);
+}, [ctid, locationid]);
 
   const [menu, setMenu] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
@@ -24,8 +30,8 @@ const App = () => {
   const [checkLists, setCheckLists] = useState([]);
   const [selectedCheckList, setSelectedCheckList] = useState(null);
   const [openChecklistDropdown, setOpenChecklistDropdown] = useState(false);
-  const [fromDate, setFromDate] = useState(new Date());
-  const [toDate, setToDate] = useState(new Date());
+  const [fromDate, setFromDate] = useState(new Date().toISOString().split("T")[0]);
+  const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [filterStatus, setFilterStatus] = useState(null);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
@@ -33,6 +39,9 @@ const App = () => {
   const [alertTitle, setAlertTitle] = useState("");         // Manages alert title
   const [alertMessage, setAlertMessage] = useState("");
   const [isAlertVisible, setIsAlertVisible] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1); // Track total pages
+  const itemsPerPage = 20; // Set how many items per page
 
   const memoizedDepartments = useMemo(() => departments, [departments]);
   const memoizedCheckLists = useMemo(() => checkLists, [checkLists]);
@@ -41,6 +50,28 @@ const App = () => {
     if (!filterStatus) return menu;
     return menu.filter((item) => item.finalSave === filterStatus);
   }, [menu, filterStatus]);
+
+const paginatedMenu = useMemo(() => {
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  return filteredMenu.slice(startIndex, endIndex);
+}, [filteredMenu, currentPage, itemsPerPage]);
+
+useEffect(() => {
+  const calculatedTotalPages = Math.ceil(filteredMenu.length / itemsPerPage);
+  setTotalPages(calculatedTotalPages || 1); // Default to 1 if no items
+}, [filteredMenu, itemsPerPage]);
+
+useEffect(() => {
+  setCurrentPage(1); 
+}, [filterStatus]);
+
+
+    useEffect(() => {
+      if (fromDate && toDate) {
+        handleSearch();
+      }
+    }, [fromDate, toDate,departments]);
 
   useEffect(() => {
     fetchDepartments(locationId).then((data) => {
@@ -73,6 +104,7 @@ const App = () => {
   }, [selectedDepartment, locationId, ctid]);
 
   const handleSearch = async () => {
+
    if (selectedCheckList && fromDate && toDate && locationId) 
      {
       const menuDetails = await fetchMenuDetailSchedule(
@@ -85,16 +117,23 @@ const App = () => {
       if (menuDetails && menuDetails.length > 0) {
         setMenu(menuDetails);
         setIsMenuVisible(true);
-      } else {
+     
+       
+      }
+  
+      
+      else {
         setMenu([]);
         setIsMenuVisible(false);
+        setAlertMessage("No Data Avaialale");
+        setAlertTitle("Alert");
+        setAlertVisible(true);
       }
   }
     
     else {
-      // Set alert details and make it visible
       setAlertTitle("Selection Required Fields");
-      setAlertMessage("Please select a checklist and valid date range.");
+      setAlertMessage("Please Select Department & Checklist Name");
       setAlertVisible(true);
     }
   };
@@ -104,7 +143,6 @@ const App = () => {
   }, []);
 
   const handleConfirmClear = () => {
-    // Perform the clear action when "OK" is pressed
     setSelectedDepartment("");
     setSelectedCheckList(null);
     setFromDate(new Date());
@@ -115,10 +153,21 @@ const App = () => {
   };
 
   const handleCancelClear = () => {
-    // Close the alert when "Cancel" is pressed
     setIsAlertVisible(false);
   };
 
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prevPage) => prevPage - 1);
+    }
+  };
   
 
   return (
@@ -147,8 +196,8 @@ const App = () => {
           items={memoizedDepartments}
           setOpen={setOpenDeptDropdown}
           setValue={setSelectedDepartment}
-          placeholder="Select Department"
-          searchPlaceholder="Search departments..."
+          placeholder="Department"
+          searchPlaceholder="Search departments..." 
         />
         <CustomAlert
           visible={alertVisible}
@@ -164,7 +213,7 @@ const App = () => {
           items={memoizedCheckLists}
           setOpen={setOpenChecklistDropdown}
           setValue={setSelectedCheckList}
-          placeholder="Select Checklist"
+          placeholder="Checklist"
           searchPlaceholder="Search checklists..."
         />
 
@@ -177,33 +226,88 @@ const App = () => {
               setToDate={setToDate}
             />
           </View>
+  {/* {["Completed", "Pending", "Drafted"].map((status) => (
+    <TouchableOpacity
+      key={status}
+      style={[
+        styles.statusBox,
+        status === "Completed" && styles.completedBox,
+        status === "Pending" && styles.pendingBox,
+        status === "Drafted" && styles.draftedBox,
+      ]}
+      onPress={() => {
+  
+        setFilterStatus(status);  // Store the selected status in state
+      }}
+    >
+      <Text
+        style={[
+          styles.statusText,
+          (status === "Pending" || status === "Drafted") && styles.darkText,
+        ]}
+      >
+        {status}
+      </Text>
+    </TouchableOpacity>
+  ))} */}
         </View>
 
         {isMenuVisible ? (
-          <FlatList
-            data={filteredMenu}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => <ScheduleMenuItem item={item} />}
-            ListEmptyComponent={
-              <Text style={styles.noDataText}>No data available</Text>
-            }
-            nestedScrollEnabled
-            style={styles.menuList}
-          />
+   <FlatList
+   data={paginatedMenu}
+   keyExtractor={(item, index) => index.toString()}
+   renderItem={({ item }) => <ScheduleMenuItem item={item} />}
+   ListEmptyComponent={
+     <Text style={styles.noDataText}>No data available</Text>
+   }
+   nestedScrollEnabled
+   style={styles.menuList}
+ />
+ 
         ) : (
           <View style={styles.placeholder}>
             <Text style={styles.placeholderText}></Text>
           </View>
         )}
 
-        <View style={styles.buttonRow}>
+
+        <View style={styles.paginationContainer}>
           <TouchableOpacity
-            onPress={() => setIsFilterModalVisible(true)}
-            style={styles.filterButton}
+            onPress={handlePrevPage}
+            style={[styles.paginationButton, currentPage === 1 && styles.disabled]}
           >
-            <FontAwesome name="filter" size={20} color="#A490F6" />
-            <Text style={styles.buttonText}>Filter</Text>
+            <Text style={styles.paginationText}>Previous</Text>
           </TouchableOpacity>
+
+          <Text style={styles.pageNumber}>{`Page ${currentPage} of ${totalPages}`}</Text>
+
+          <TouchableOpacity
+            onPress={handleNextPage}
+            style={[styles.paginationButton, currentPage === totalPages && styles.disabled]}
+          >
+            <Text style={styles.paginationText}>Next</Text>
+          </TouchableOpacity>
+        </View>
+
+
+
+        <View style={styles.buttonRow}>
+        <TouchableOpacity
+  onPress={() => {
+    if (!selectedDepartment) {
+      setAlertTitle("Selection Required");
+      setAlertMessage("Please select a department before applying filters.");
+      setAlertVisible(true);
+    } else {
+      setIsFilterModalVisible(true);
+    }
+  }}
+  style={styles.filterButton}
+>
+  <FontAwesome name="filter" size={20} color="#A490F6" />
+  <Text style={styles.buttonText}>Filter</Text>
+</TouchableOpacity>
+
 
           <View style={styles.rightButtons}>
             <TouchableOpacity onPress={handleSearch} style={styles.button}>
@@ -242,6 +346,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     backgroundColor: "#fff",
+    height:2000
+ 
   },
   label: {
     fontSize: 16,
@@ -265,7 +371,7 @@ const styles = StyleSheet.create({
   dateRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 16,
+    ///marginBottom: 6,
   },
   datePickerContainer: {
     flex: 1,
@@ -276,7 +382,7 @@ const styles = StyleSheet.create({
   },
   menuList: {
     flex: 1,
-    marginTop: 16,
+   //// marginTop: 10,
     borderColor: "#A490F6",
   },
   placeholder: {
@@ -293,8 +399,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginVertical: 16,
+    marginVertical: 5,
     paddingHorizontal: 10,
+    marginTop:10
   },
   filterButton: {
     flexDirection: "row",
@@ -382,6 +489,76 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: 16,
     color: "black",
+  },
+  statusBox: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    marginHorizontal: 5, // Space between status boxes
+    elevation: 5, // Adds a shadow for Android
+    shadowColor: '#000', // Shadow color for iOS
+    shadowOffset: { width: 0, height: 2 }, // Shadow offset
+    shadowOpacity: 0.1, // Shadow opacity for iOS
+    shadowRadius: 4, // Shadow blur for iOS
+    transform: [{ translateY: 2 }], // Adds slight depth
+    justifyContent: 'center', // Centers text vertically
+    alignItems: 'center', // Centers text horizontally
+    
+  },
+  
+  
+  completedBox: {
+    backgroundColor: 'green',
+    borderColor: '#006400', // Dark green border for contrast
+    borderWidth: 2,
+  },
+  
+  pendingBox: {
+    backgroundColor: '#b3cde0', // Light blue
+    borderColor: '#7a9ba6', // Darker blue border for contrast
+    borderWidth: 2,
+  },
+  
+  draftedBox: {
+    backgroundColor: '#ffcc80', // Orange
+    borderColor: '#e67e22', // Darker orange border for contrast
+    borderWidth: 2,
+  },
+  
+  statusText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: 'white',
+  },
+  
+  darkText: {
+    color: 'black', // For Pending and Drafted
+  },
+  
+
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 5,
+   /// marginBottom:10,
+  },
+  paginationButton: {
+    padding: 6,
+    backgroundColor: '#A490F6',
+    borderRadius: 5,
+    marginHorizontal: 10,
+  },
+  paginationText: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  pageNumber: {
+    fontSize: 12,
+  },
+  disabled: {
+    backgroundColor: '#ccc',
   },
 });
 

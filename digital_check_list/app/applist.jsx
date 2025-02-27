@@ -18,6 +18,7 @@ import { useDispatch } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
+
 const menuItems = [
   { name: "Digital CheckList", icon: "checklist", color: "#4CAF50", route: "Digital_Checklist_App/TypeofCheckList" },
   { name: "OT Booking", icon: "event", color: "#F44336" },
@@ -320,7 +321,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   dropdownContainerStyle: {
-    maxHeight: 140,
+    maxHeight: 840,
+
   },
   dropdownSelectedText: {
     color: "#333",

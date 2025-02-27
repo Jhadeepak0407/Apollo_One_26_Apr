@@ -46,14 +46,14 @@ export const fetchSubHeaderData = async (setSubHeaderData, setLoading, setError)
 // Fetch data from the third API (Sub Header Value)
 
 export const fetchSubHeaderValue = async (  params,
-    fieldid,setSubHeaderValue, setLoading, setError ) => {
+    fieldid,setSubHeaderValue, setLoading, setError,locationid ) => {
   try {
 // console.log("headervalue",fieldid);
 // console.log("sequenceNumber",params.sequenceNumber);
 // console.log("cid",params.cid);
 
     //const response = await axios.get('http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains_Header_Value?taskid=16&ip_number=DELIP504639');
-    const response = await axios.get(`http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains_Header_ValueforSchedule?SequenceNumber=${params?.sequenceNumber}&TaskId=${params?.cid}&Fieldid=${fieldid}&Location=10701`);
+    const response = await axios.get(`http://10.10.9.89:203/api/Users/DynamicFormDatadetails_Mains_Header_ValueforSchedule?SequenceNumber=${params?.sequenceNumber}&TaskId=${params?.cid}&Fieldid=${fieldid}&Location=${locationid}`);
   ////  console.log("response",response);
     const fetchedSubHeaderValue = response.data;
 
@@ -117,33 +117,52 @@ const apiInstance = async ({ method = "GET", url, body }) => {
 
 
 
-export const fetchCheckListDetails = async (setcheckListDetails, setLoading, setError , params,setFileName,setfinalsave) => {
+export const fetchCheckListDetails = async (
+  setcheckListDetails,
+  setLoading,
+  setError,
+  params,
+  setFileName,
+  setfinalsave,
+  locationid
+) => {
+  try {
+    setLoading(true);
 
  
-   const fetchedCheckListData =await axios.get(`http://10.10.9.89:203/api/Users/CheckListDetailsforschedule?SequenceNumber=${params?.sequenceNumber}&CID=${params?.cid}&LocationId=10701`);
 
+    const response = await axios.get(
+      `http://10.10.9.89:203/api/Users/CheckListDetailsforschedule?SequenceNumber=${params?.sequenceNumber}&CID=${params?.cid}&LocationId=${locationid}`
+    );
 
-  if (fetchedCheckListData.status == "200") {
+    console.log("API Response Status:", response.status);
+    console.log("API Response Data Noida:", response.data);
 
-    console.log(fetchedCheckListData.data);
+    if (response.status === 200 && response.data) {
+     ///// console.table(response.data);
 
-    console.log('setcheckListDetailskarm12');
-    console.table(fetchedCheckListData.data);
-    fetchedCheckListData.data.forEach((item, index) => {
-      if (item.fieldType_id == 6) {
-         /// console.log(`Filename at index ${index}:`, item.actualFileName);
-          setFileName(item.actualFileName),
+      response.data.forEach((item, index) => {
+        if (item.fieldType_id == 6) {
+          
+          setFileName(item.actualFileName);
+         
           setfinalsave(item.isFinalSave);
-          console.log("finalsabe",item.isFinalSave)
-      }
-  });
-      setcheckListDetails(fetchedCheckListData.data);
-    
-    console.log("setcheckListDetails",setcheckListDetails);
-  } else setError('Error fetching questions.');
+          console.log("Final Save Status:", item.isFinalSave);
+        }
+      });
 
-
+      setcheckListDetails(response.data);
+    } else {
+      throw new Error("Invalid response from API.");
+    }
+  } catch (error) {
+    console.error("Error fetching checklist details:", error.message);
+    setError("Error fetching questions.");
+  } finally {
+    setLoading(false);
+  }
 };
+
 
 
 

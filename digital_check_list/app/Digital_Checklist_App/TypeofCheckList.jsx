@@ -24,7 +24,48 @@ function TypeofCheckList({ navigation, route }) {
   const [EmpID, setEmpID] = useState(null);
   const [locationid, setLocationID] = useState(null);
  
-
+  const checklists = [
+    {
+      id: "1",
+      location:"10701",
+      ctid: "10",
+      title: "Triggered Checklist",
+      route: "Digital_Checklist_App/TriggeredChecklist",
+      icon: "alarm",
+    },
+    {
+      id: "2",
+      location:"10701",
+      ctid: "12",
+      title: "Schedule Checklist",
+      route: "Digital_Checklist_App/ScheduleChecklist",
+      icon: "calendar",
+    },
+    {
+      id: "3",
+      location:"10701",
+      ctid: "13",
+      title: "Instant Checklist",
+      route: "Digital_Checklist_App/InstantChecklist",
+      icon: "flash",
+    },
+    {
+      id: "4",
+      location:"10702",
+      ctid: "10",
+      title: "Triggered Checklist",
+      route: "Digital_Checklist_App/TriggeredChecklist",
+      icon: "alarm",
+    },
+    {
+      id: "5",
+      location:"10702",
+      ctid: "14",
+      title: "Schedule Checklist",
+      route: "Digital_Checklist_App/ScheduleChecklist",
+      icon: "calendar",
+    },
+  ];
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -36,7 +77,7 @@ function TypeofCheckList({ navigation, route }) {
           console.log("storage2",user);
           // Extract EmpID and locationid from the stored data
           setEmpID(user.id);
-          setLocationID(user.usernametmslocation); // Assuming tmsemployeelocationcode is the locationid
+          setLocationID(user.selectedLocation); // Assuming tmsemployeelocationcode is the locationid
         }
       } catch (error) {
         console.log('Error loading user data from AsyncStorage:', error);
@@ -49,65 +90,43 @@ function TypeofCheckList({ navigation, route }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!EmpID || !locationid) return; // If EmpID or locationid are not available, skip the fetch
-////console.log("EmpID",EmpID);
-///console.log("locationid",locationid);
-
+      if (!EmpID || !locationid) return; // Prevent execution if values are missing
+  
+      console.log("Fetching Checklist for Location ID:", locationid);
       try {
         const data = await fetchChecklistByRole(EmpID, locationid);
-     console.log("data",data);
-        // Filter predefined checklists based on API data
-        const filtered = checklists.filter((checklist) =>
-          data.some((apiItem) => {
-            const checklistTitle = checklist.ctid;
-          //////     console.log("checklistTitle",checklistTitle)
-            const checkListTypeName = apiItem.ctid;
-         ////   console.log("checkListTypename",checkListTypeName)
-
-            return checkListTypeName == checklistTitle;
-          })
-        );
-
-        setFilteredChecklists(filtered);
+        console.log("Fetched Checklist Data:", data);
+  
+        // Filter predefined checklists based on API data & location ID
+        const filtered = checklists.filter((checklist) => {
+          const isMatchingChecklist = data.some(
+            (apiItem) => apiItem.ctid == checklist.ctid && checklist.location == locationid
+          );
+  
        
+  
+          return isMatchingChecklist && checklist.location == locationid;
+        });
+  
+        ////console.log("Filtered Checklists:", filtered);
+        setFilteredChecklists(filtered);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching checklist:', error);
+        console.error("Error fetching checklist:", error);
         setLoading(false);
       }
     };
-
+  
     fetchData();
-  }, [EmpID, locationid]); // Depend on EmpID and locationid
+  }, [EmpID, locationid]);
+  
 
 
 
-  const checklists = [
-    {
-      id: "1",
-      ctid: "10",
-      title: "Triggered Checklist",
-      route: "Digital_Checklist_App/TriggeredChecklist",
-      icon: "alarm",
-    },
-    {
-      id: "2",
-      ctid: "12",
-      title: "Schedule Checklist",
-      route: "Digital_Checklist_App/ScheduleChecklist",
-      icon: "calendar",
-    },
-    {
-      id: "3",
-      ctid: "13",
-      title: "Instant Checklist",
-      route: "Digital_Checklist_App/InstantChecklist",
-      icon: "flash",
-    },
-  ];
+
 
   const handleNavigation = (baseRoute, ctid) => {
-    router.push({ pathname: baseRoute, params: { ctid } });
+    router.push({ pathname: baseRoute, params: { ctid,locationid } });
   };
   
   
@@ -129,8 +148,10 @@ function TypeofCheckList({ navigation, route }) {
  
 
   const renderItem = ({ item }) => {
+   
+
     const isMatch = filteredChecklists.some(
-      (checklist) => checklist.ctid == item.ctid
+      (checklist) => checklist.ctid == item.ctid && checklist.location == locationid
     ); // Check if the item matches the filtered list
  ///   console.log("isMatch",isMatch);
 
@@ -164,7 +185,7 @@ function TypeofCheckList({ navigation, route }) {
         <Text>Loading...</Text>
       ) : filteredChecklists.length > 0 ? (
         <FlatList
-          data={checklists} // Use the original checklists array to ensure everything is displayed
+          data={checklists.filter((item) => item.location == locationid)} // Use the original checklists array to ensure everything is displayed
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}

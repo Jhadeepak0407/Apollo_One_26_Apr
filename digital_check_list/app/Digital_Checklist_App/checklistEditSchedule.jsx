@@ -7,9 +7,11 @@ import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library'; // Import media library for permissions and file access
 import * as IntentLauncher from 'expo-intent-launcher'; // Import the intent launcher module
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import showToast from "../../services/Utils/toasts/toastConfig";
+
 
 import { fetchHeaderData, fetchSubHeaderValue, fetchCheckListDetails,fetchFile } from '../../services/Utils/getCheckListDataforSchedule';
-import RadioButtonGroup from '../../projects/digital_check_list/components/radioButtonComponent';
+import RadioButtonGroup from '../../projects/digital_check_list/components/radioButtonComponentSchedule';
 import { saveFormData, updateFormData } from '../../services/Utils/postCheckListDataSchedule';
 
 const MainPage = () => {
@@ -33,28 +35,33 @@ const MainPage = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
 
-
+  
+  useEffect(() => {
+    // Set screen title dynamically
+    if (params.sequenceNumber) {
+      router.setParams({ title: params.sequenceNumber });
+    }
+  },[]);
 
   useEffect(() => {
     const loadUserData = async () => {
       try {
         const storedUser = await AsyncStorage.getItem('auth'); // Assuming 'auth' is the key you are using
+       /// console.log("storage1",storedUser);
         if (storedUser) {
           const user = JSON.parse(storedUser);
-          console.log("storage2", user);
-  
-          // Use setTimeout to introduce a delay for setting EmpID and LocationID
-          setTimeout(() => {
-            setEmpID(user.id);
-            console.log(user.id);
-            setLocationID(user.usernametmslocation); // Assuming tmsemployeelocationcode is the locationid
-          }, 2000); // Delay of 2000ms (2 seconds)
+         //// console.log("storage2",user);
+          // Extract EmpID and locationid from the stored data
+          setEmpID(user.id);
+          setLocationID(user.selectedLocation);// Assuming tmsemployeelocationcode is the locationid
+          // Log location correctly
+        console.log("Location ID:", user.selectedLocation); 
         }
       } catch (error) {
         console.log('Error loading user data from AsyncStorage:', error);
       }
     };
-  
+
     loadUserData();
   }, []);
   
@@ -94,7 +101,7 @@ const MainPage = () => {
   }, [fileName]); // Trigger effect on fileName change
 
   const downloadImage = async () => {
-    console.log(fileName)
+    ///console.log("fileNameNoida",fileName)
 
     if (!loading && permissionStatus === 'granted' && fileName) {
       setLoading(true); // Show loading state while downloading
@@ -134,7 +141,7 @@ const MainPage = () => {
       if (headerData.length > 0) {
         const fieldId = headerData[0].fieldId;
         try {
-          await fetchSubHeaderValue(params, fieldId, setSubHeaderValue, setLoading, setError);
+          await fetchSubHeaderValue(params, fieldId, setSubHeaderValue, setLoading, setError,locationid);
         } catch (error) {
           console.error('Error fetching sub-header value:', error);
         }
@@ -149,10 +156,12 @@ const MainPage = () => {
       try {
         setLoading(true);
         await fetchHeaderData(params, setHeaderData, setLoading, setError);
-        await fetchCheckListDetails(setCheckListDetails, setLoading, setError, params , setFileName,setfinalsave);
+
+
+        await fetchCheckListDetails(setCheckListDetails, setLoading, setError, params , setFileName,setfinalsave,locationid);
         setCheckListDetails((prevDetails) => {
           const updatedDetails = prevDetails.map((item) => {
-            if (item.field_id === 1211) {
+            if (item.field_id === 1211  ) {
               console.log(`Filename for field_id 1211:`, item.actualFileName);
               console.log(`Finalsave for field_id 1211:`, item.isFinalSave);
   
@@ -183,7 +192,7 @@ const MainPage = () => {
     };
   
     fetchData();
-  }, []); // Add EmpID to dependencies
+  }, [locationid]); // Add EmpID to dependencies
 
 
  
@@ -268,6 +277,8 @@ const MainPage = () => {
       const response = await saveFormData(finalData);
       if (response.status === '200') {
         Alert.alert('Success', 'Draft saved successfully.');
+        ///showToast('success', 'Success', 'Draft saved successfully.', 'green');
+
         router.back(); // Navigate back
       } else {
         Alert.alert('Error', 'Failed to save draft.');
@@ -284,6 +295,8 @@ const MainPage = () => {
   const handleFinalSave = async () => {
     setLoading(true);
     let actualFileName = "Null"; // Default value
+
+    
     // Upload the image first if it exists
     if (image) {
       try {
@@ -298,16 +311,6 @@ const MainPage = () => {
           return;
         }
 
-        // Simulate file size (replace with actual logic)
-  //       const maxFileSize = 25 * 1024 * 1024;
-  //       const fileSize = file.size;
-  //       console.log("filesize",fileSize);
-  //         // Validate file size
-  // if (fileSize > maxFileSize) {
-  //   alert('File size exceeds the 10MB limit.');
-  //   return;
-  // }
-        // Create a unique file name
         const originalFileName = fileName.substring(0, fileName.lastIndexOf('.'));
         const sanitizedFileName = originalFileName.replace(/[^a-zA-Z0-9]/g, ''); // Remove non-alphanumeric characters from the original filename
         const timestamp = new Date().toISOString().replace(/[-:.]/g, ''); // Sanitize the timestamp
@@ -485,7 +488,7 @@ console.log("fileuri",file.uri);
     });
 
     if (response.ok) {
-      alert('File uploaded successfully!');
+      /////alert('File uploaded successfully!');
       console.log('Upload Response:', await response.json());
     } else {
       const errorResponse = await response.json();
@@ -507,18 +510,24 @@ console.log("fileuri",file.uri);
         <Text style={styles.mainHeader}>{params.checklistname}</Text>
       </View>
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        <Stack.Screen options={{ title: "Edit Checklist", statusBarColor: "black" }} />
+      <Stack.Screen 
+  options={{ 
+    title: `Task ID: ${params.sequenceNumber || "Edit Checklist"}`, 
+    statusBarColor: "black" 
+  }} 
+/>
         <View style={styles.sectionContainer}>
           {subHeaderValue?.map((item) => (
             <View key={item.subfieldId} style={styles.fieldContainer}>
-              <Text style={styles.label}>{item.textBoxFieldName}</Text>
+              {/* <Text style={styles.label}>{item.textBoxFieldName}</Text> */}
               <TextInput
                 style={styles.input}
                 value={item.secondColumnData}
                 editable={false}
                 onChangeText={(text) => handleTextChange(text, item.subfieldId)}
                 placeholder="Enter value"
-                placeholderTextColor="#A0A0A0"
+                placeholderTextColor="#495057"
+                 textAlign="center"
               />
             </View>
           ))}
@@ -535,6 +544,7 @@ console.log("fileuri",file.uri);
                   {questionItem.fieldType_Name === 'Remark' ? (
                     <TextInput
                       style={styles.input1}
+                      value={questionItem.natext}
                       placeholder={questionItem.natext ? questionItem.natext : "Enter the Comment"}
                       onChangeText={(text) =>
                         remarkHandler({
@@ -572,10 +582,10 @@ console.log("fileuri",file.uri);
                                 <Icon name="camera" size={30} color="#FF4C00" />
                                 <Text style={styles.optionText}>Camera</Text>
                               </TouchableOpacity>
-                              <TouchableOpacity style={styles.option} onPress={pickFromLibrary}>
+                              {/* <TouchableOpacity style={styles.option} onPress={pickFromLibrary}>
                                 <Icon name="folder" size={30} color="#FF4C00" />
                                 <Text style={styles.optionText}>Gallery</Text>
-                              </TouchableOpacity>
+                              </TouchableOpacity> */}
                             </View>
                           </View>
                         </View>
@@ -623,7 +633,7 @@ console.log("fileuri",file.uri);
     </Text>
   </TouchableOpacity>
 ) : (
-  <Text style={styles.infoText}>No file available to download.</Text>
+  <Text style={styles.infoText}>.</Text>
 )}
 
 
@@ -649,14 +659,14 @@ console.log("fileuri",file.uri);
     <>
       <TouchableOpacity style={styles.button} onPress={handleDraftSave}>
         <Icon name="save" size={20} color="#fff" />
-        <Text style={styles.buttonText}>Draft Save</Text>
+        <Text style={styles.buttonText}>Draft</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.button, styles.successButton]}
         onPress={handleFinalSave}
       >
         <Icon name="check-circle" size={20} color="#fff" />
-        <Text style={styles.buttonText}>Final Save</Text>
+        <Text style={styles.buttonText}>Submit</Text>
       </TouchableOpacity>
     </>
   ) : null}
@@ -683,20 +693,27 @@ const styles = StyleSheet.create({
     //fontFamily: 'Mulish_600SemiBold',
     marginBottom: 10,
   },
-  fieldContainer: {
-    marginVertical: 10,
-  },
   taskDetail: {
     fontSize: 16,
    // fontFamily: 'Mulish_400Regular',
   },
-  input: {
-    height: 40,
-    borderColor: '#CED4DA',
-    borderWidth: 1,
-    borderRadius: 5,
+  fieldContainer: {
+    marginBottom: 5,
     paddingHorizontal: 10,
-    marginVertical: 5,
+  },
+  input: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#0078D4',            // Text in professional blue
+    textAlign: 'center',
+    backgroundColor: '#E3F2FD',  // Light mode soft blue
+    paddingVertical: 12,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   input1: {
     height: 40,
@@ -706,6 +723,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginVertical: 5,
+  
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -734,7 +752,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   headerContainer: {
-    backgroundColor: '#cce7ff',
+    backgroundColor: '#0078D4',
     padding: 10,
     borderRadius: 10,
     alignItems: 'center',
@@ -748,7 +766,7 @@ const styles = StyleSheet.create({
   mainHeader: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: '#FFFFFF',
     textAlign: 'center',
    // fontFamily: 'Mulish_400Regular',
 
