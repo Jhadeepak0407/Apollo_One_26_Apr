@@ -1,27 +1,36 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, FlatList, SafeAreaView  } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, FlatList, SafeAreaView } from "react-native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import CustomDatePicker from "../../projects/digital_check_list/components/getcustomdaterange";
 import FilterModal from "../../projects/digital_check_list/components/filterboxschedule";
 import ScheduleMenuItem from "../../projects/digital_check_list/components/getmenuitemsforschedule";
 import CustomDropdown from "../../projects/digital_check_list/components/getdropdownschedule";
+import CustomDropdown2 from "../../projects/digital_check_list/components/customDropdown";
 import CustomAlert from "../../projects/digital_check_list/components/alertmessage";
 import ConfirmCustomAlert from "../../projects/digital_check_list/components/confirmalert";
-import { fetchDepartments, fetchCheckLists, fetchMenuDetails } from "../../services/triggeredchecklistapi";
+import { fetchDepartments, fetchCheckLists, fetchMenuDetails, fetchAllotedDepartments, getfetchCheckLists } from "../../services/triggeredchecklistapi";
 import { fetchMenuDetailSchedule } from "../../services/schedulechecklistapi";
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from 'react-native-vector-icons'; // Import the icon library
+import { SelectCountry } from "react-native-element-dropdown";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const App = () => {
+  const [id, setId] = useState("");
+
   const router = useRouter();
-  const { ctid,locationid  } = useLocalSearchParams(); // Use useLocalSearchParams to access query params
+  const { ctid, locationid } = useLocalSearchParams(); // Use useLocalSearchParams to access query params
   const locationId = locationid || "10701"; // Set default if undefined
+  const params = useLocalSearchParams(); // Get all query params
 
+  useEffect(() => {
+    console.log("Local Search Params:", params);
+  }, [params]);
 
- useEffect(() => {
-  console.log("CTID:", ctid);
-  console.log("Location ID:", locationid);
-}, [ctid, locationid]);
+  useEffect(() => {
+    console.log("CTID:", ctid);
+    console.log("Location ID:", locationid);
+  }, [ctid, locationid]);
 
   const [menu, setMenu] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
@@ -48,65 +57,89 @@ const App = () => {
 
   const filteredMenu = useMemo(() => {
     if (!filterStatus) return menu;
-    return menu.filter((item) => item.finalSave === filterStatus);
+    return menu.filter((item) => filterStatus.includes(item.finalSave));
   }, [menu, filterStatus]);
 
-const paginatedMenu = useMemo(() => {
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  return filteredMenu.slice(startIndex, endIndex);
-}, [filteredMenu, currentPage, itemsPerPage]);
 
-useEffect(() => {
-  const calculatedTotalPages = Math.ceil(filteredMenu.length / itemsPerPage);
-  setTotalPages(calculatedTotalPages || 1); // Default to 1 if no items
-}, [filteredMenu, itemsPerPage]);
-
-useEffect(() => {
-  setCurrentPage(1); 
-}, [filterStatus]);
-
-
-    useEffect(() => {
-      if (fromDate && toDate) {
-        handleSearch();
-      }
-    }, [fromDate, toDate,departments]);
+  const paginatedMenu = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredMenu.slice(startIndex, endIndex);
+  }, [filteredMenu, currentPage, itemsPerPage]);
 
   useEffect(() => {
-    fetchDepartments(locationId).then((data) => {
-      if (Array.isArray(data)) {
-        setDepartments(
-          data.map((dept) => ({
-            label: dept.departmentName,
-            value: dept.departmentId,
-          }))
-        );
+    const calculatedTotalPages = Math.ceil(filteredMenu.length / itemsPerPage);
+    setTotalPages(calculatedTotalPages || 1); // Default to 1 if no items
+  }, [filteredMenu, itemsPerPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus]);
+
+
+  useEffect(() => {
+    if (fromDate && toDate) {
+      handleSearch();
+    }
+  }, [fromDate, toDate, departments]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Retrieve and parse the ID from AsyncStorage
+        const authData = await AsyncStorage.getItem("auth");
+        const userId = authData ? JSON.parse(authData).id : null;
+
+        if (userId) {
+          const data = await fetchAllotedDepartments(locationId, ctid, userId);
+          if (Array.isArray(data) && data.length > 0) {
+            const formattedDepartments = data.map((dept) => ({
+              label: dept.departmentName,
+              value: dept.departmentId,
+            }));
+
+            setDepartments(formattedDepartments); // Set departments
+            setSelectedDepartment(formattedDepartments[0].value); // Select the first item
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching auth data:", error);
       }
-    });
-  }, [locationId]);
+    };
+
+    fetchData();
+  }, [locationId, ctid]); // Dependencies
+
+
 
   useEffect(() => {
     if (selectedDepartment) {
-      fetchCheckLists(locationId, selectedDepartment, ctid).then((data) => {
-        if (Array.isArray(data)) {
-          setCheckLists(
-            data.map((list) => ({
-              label: list.checklist_name,
-              value: list.checklist_id,
-            }))
-          );
+      getfetchCheckLists(locationId, selectedDepartment, ctid, id).then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const formattedChecklists = data.map((list) => ({
+            label: list.checklist_name,
+            value: list.checklist_id,
+          }));
+
+          setCheckLists(formattedChecklists); // Set the checklist data
+          setSelectedCheckList(formattedChecklists[0].value); // Select the first item
         } else {
           setCheckLists([]);
+          setSelectedCheckList(null); // Reset selected checklist if no data
         }
       });
     }
   }, [selectedDepartment, locationId, ctid]);
 
+
   const handleSearch = async () => {
 
-   if (selectedCheckList && fromDate && toDate && locationId) 
-     {
+    if (selectedCheckList && fromDate && toDate && locationId) {
+      console.log(selectedCheckList);
+      console.log(fromDate);
+      console.log(toDate);
+      console.log(locationId);
+
       const menuDetails = await fetchMenuDetailSchedule(
         selectedCheckList,
         fromDate,
@@ -117,11 +150,11 @@ useEffect(() => {
       if (menuDetails && menuDetails.length > 0) {
         setMenu(menuDetails);
         setIsMenuVisible(true);
-     
-       
+
+
       }
-  
-      
+
+
       else {
         setMenu([]);
         setIsMenuVisible(false);
@@ -129,12 +162,12 @@ useEffect(() => {
         setAlertTitle("Alert");
         setAlertVisible(true);
       }
-  }
-    
+    }
+
     else {
-      setAlertTitle("Selection Required Fields");
-      setAlertMessage("Please Select Department & Checklist Name");
-      setAlertVisible(true);
+      // setAlertTitle("Selection Required Fields");
+      // setAlertMessage("Please Select Department & Checklist Name");
+      // setAlertVisible(true);
     }
   };
 
@@ -168,7 +201,7 @@ useEffect(() => {
       setCurrentPage((prevPage) => prevPage - 1);
     }
   };
-  
+
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -181,24 +214,36 @@ useEffect(() => {
           options={{
             title: 'Schedule Checklist',
             statusBarColor: 'black',
-            headerTitleAlign: 'center',  
+            headerTitleAlign: 'center',
             headerLeft: () => (
               <TouchableOpacity onPress={() => router.back()} style={{ marginLeft: 10 }}>
-                <Ionicons name="arrow-back" size={24} color="black" /> 
+                <Ionicons name="arrow-back" size={24} color="black" />
               </TouchableOpacity>
             ),
           }}
         />
-  
-        <CustomDropdown
+
+
+        {/* <CustomDropdown
           open={openDeptDropdown}
           value={selectedDepartment}
           items={memoizedDepartments}
           setOpen={setOpenDeptDropdown}
           setValue={setSelectedDepartment}
           placeholder="Department"
-          searchPlaceholder="Search departments..." 
+          searchPlaceholder="Search departments..."
+        /> */}
+
+        <CustomDropdown2
+          open={openDeptDropdown}
+          value={selectedDepartment}
+          items={memoizedDepartments}
+          setOpen={setOpenDeptDropdown}
+          setValue={setSelectedDepartment}
+          placeholder="Department"
+          searchPlaceholder="Search departments..."
         />
+
         <CustomAlert
           visible={alertVisible}
           title={alertTitle}
@@ -206,8 +251,8 @@ useEffect(() => {
           onClose={() => setAlertVisible(false)}
         />
 
-      
-        <CustomDropdown
+
+        <CustomDropdown2
           open={openChecklistDropdown}
           value={selectedCheckList}
           items={memoizedCheckLists}
@@ -216,6 +261,15 @@ useEffect(() => {
           placeholder="Checklist"
           searchPlaceholder="Search checklists..."
         />
+            {/* <CustomDropdown
+          open={openChecklistDropdown}
+          value={selectedCheckList}
+          items={memoizedCheckLists}
+          setOpen={setOpenChecklistDropdown}
+          setValue={setSelectedCheckList}
+          placeholder="Checklist"
+          searchPlaceholder="Search checklists..."
+        /> */}
 
         <View style={styles.dateRow}>
           <View style={styles.datePickerContainer}>
@@ -226,7 +280,7 @@ useEffect(() => {
               setToDate={setToDate}
             />
           </View>
-  {/* {["Completed", "Pending", "Drafted"].map((status) => (
+          {/* {["Completed", "Pending", "Drafted"].map((status) => (
     <TouchableOpacity
       key={status}
       style={[
@@ -253,17 +307,17 @@ useEffect(() => {
         </View>
 
         {isMenuVisible ? (
-   <FlatList
-   data={paginatedMenu}
-   keyExtractor={(item, index) => index.toString()}
-   renderItem={({ item }) => <ScheduleMenuItem item={item} />}
-   ListEmptyComponent={
-     <Text style={styles.noDataText}>No data available</Text>
-   }
-   nestedScrollEnabled
-   style={styles.menuList}
- />
- 
+          <FlatList
+            data={paginatedMenu}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => <ScheduleMenuItem item={item} />}
+            ListEmptyComponent={
+              <Text style={styles.noDataText}>No data available</Text>
+            }
+            nestedScrollEnabled
+            style={styles.menuList}
+          />
+
         ) : (
           <View style={styles.placeholder}>
             <Text style={styles.placeholderText}></Text>
@@ -292,21 +346,24 @@ useEffect(() => {
 
 
         <View style={styles.buttonRow}>
-        <TouchableOpacity
-  onPress={() => {
-    if (!selectedDepartment) {
-      setAlertTitle("Selection Required");
-      setAlertMessage("Please select a department before applying filters.");
-      setAlertVisible(true);
-    } else {
-      setIsFilterModalVisible(true);
-    }
-  }}
-  style={styles.filterButton}
->
-  <FontAwesome name="filter" size={20} color="#A490F6" />
-  <Text style={styles.buttonText}>Filter</Text>
-</TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+
+              if (selectedCheckList && fromDate && toDate && locationId) {
+                setIsFilterModalVisible(true);
+
+              }
+              else {
+                setAlertTitle("Selection Required");
+                setAlertMessage("Please select a department , checklist and date before applying filters.");
+                setAlertVisible(true);
+              }
+            }}
+            style={styles.filterButton}
+          >
+            <FontAwesome name="filter" size={20} color="#A490F6" />
+            <Text style={styles.buttonText}>Filter</Text>
+          </TouchableOpacity>
 
 
           <View style={styles.rightButtons}>
@@ -346,8 +403,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     backgroundColor: "#fff",
-    height:2000
- 
+    height: 2000
+
   },
   label: {
     fontSize: 16,
@@ -382,7 +439,7 @@ const styles = StyleSheet.create({
   },
   menuList: {
     flex: 1,
-   //// marginTop: 10,
+    //// marginTop: 10,
     borderColor: "#A490F6",
   },
   placeholder: {
@@ -401,7 +458,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 5,
     paddingHorizontal: 10,
-    marginTop:10
+    marginTop: 10
   },
   filterButton: {
     flexDirection: "row",
@@ -503,46 +560,46 @@ const styles = StyleSheet.create({
     transform: [{ translateY: 2 }], // Adds slight depth
     justifyContent: 'center', // Centers text vertically
     alignItems: 'center', // Centers text horizontally
-    
+
   },
-  
-  
+
+
   completedBox: {
     backgroundColor: 'green',
     borderColor: '#006400', // Dark green border for contrast
     borderWidth: 2,
   },
-  
+
   pendingBox: {
     backgroundColor: '#b3cde0', // Light blue
     borderColor: '#7a9ba6', // Darker blue border for contrast
     borderWidth: 2,
   },
-  
+
   draftedBox: {
     backgroundColor: '#ffcc80', // Orange
     borderColor: '#e67e22', // Darker orange border for contrast
     borderWidth: 2,
   },
-  
+
   statusText: {
     fontSize: 12,
     fontWeight: 'bold',
     textAlign: 'center',
     color: 'white',
   },
-  
+
   darkText: {
     color: 'black', // For Pending and Drafted
   },
-  
+
 
   paginationContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 5,
-   /// marginBottom:10,
+    /// marginBottom:10,
   },
   paginationButton: {
     padding: 6,

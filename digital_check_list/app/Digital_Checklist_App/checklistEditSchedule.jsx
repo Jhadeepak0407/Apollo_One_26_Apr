@@ -33,6 +33,7 @@ const MainPage = () => {
       const [locationid, setLocationID] = useState(null);
 
   const params = useLocalSearchParams();
+  console.log('params',params)
   const router = useRouter();
 
   
@@ -207,6 +208,33 @@ const MainPage = () => {
     );
   };
 
+  const validateData = (finalData) => {
+    if (!finalData?.questions || !Array.isArray(finalData.questions)) {
+      Alert.alert("Validation Error", "Invalid form data.");
+      return false;
+    }
+  
+    for (const item of finalData.questions) {
+      console.log('dd',item.fieldType_id)
+      if (item.fieldType_id === "4" && (!item.selection || item.selection.trim() === "")) {
+        console.log('ee',item.fieldType_id)
+        console.log("inside")
+        Alert.alert("Validation Error", `All questions are mandatory.`);
+        return false;
+      }
+
+
+      if (item.fieldType_id === "6" && ( item.actualFileName.trim().toLowerCase()==="null" || !item.actualFileName || item.actualFileName.trim() === ""|| item.actualFileName.trim().toLowerCase === "null")) {
+        console.log('ggg',item.fieldType_id)
+        console.log("inside")
+        Alert.alert("Validation Error", `All questions are mandatory.`);
+        return false;
+      }
+    }
+  
+    return true; // All validations passed
+  };
+
   const handleDraftSave = async () => {
     setLoading(true);
     let actualFileName = "Null"; // Default value
@@ -224,15 +252,7 @@ const MainPage = () => {
           return;
         }
 
-        // Simulate file size (replace with actual logic)
-  //       const maxFileSize = 25 * 1024 * 1024;
-  //       const fileSize = file.size;
-  //       console.log("filesize",fileSize);
-  //         // Validate file size
-  // if (fileSize > maxFileSize) {
-  //   alert('File size exceeds the 10MB limit.');
-  //   return;
-  // }
+        
         // Create a unique file name
         const originalFileName = fileName.substring(0, fileName.lastIndexOf('.'));
         const sanitizedFileName = originalFileName.replace(/[^a-zA-Z0-9]/g, ''); // Remove non-alphanumeric characters from the original filename
@@ -271,9 +291,11 @@ const MainPage = () => {
     };
     
 
+    console.log(finalData);
     // Save the form data
     try {
        console.log('finalData' ,finalData);
+       
       const response = await saveFormData(finalData);
       if (response.status === '200') {
         Alert.alert('Success', 'Draft saved successfully.');
@@ -294,7 +316,7 @@ const MainPage = () => {
 
   const handleFinalSave = async () => {
     setLoading(true);
-    let actualFileName = "Null"; // Default value
+    let actualFileName = "Null"; 
 
     
     // Upload the image first if it exists
@@ -345,7 +367,13 @@ const MainPage = () => {
          createdBy:EmpID,updatedby:EmpID,locationid:locationid
       })),
     };
+    console.log(finalData);
     try {
+      if (!validateData(finalData)) {
+        setLoading(false);
+
+        return; // Stop execution if validation fails
+      }
       const response = await updateFormData(finalData);
       if (response.status === "200") {
         setLoading(false);
