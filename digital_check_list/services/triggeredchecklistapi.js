@@ -10,11 +10,36 @@ export const fetchDepartments = async (locationId) => {
       return [];
     }
   };
+
+  export const fetchAllotedDepartments = async (locationId , ctid , empid) => {
+    try {
+      const response = await fetch(
+        `http://10.10.9.89:203/api/Users/GetAllotedDepartmentDetails?locationid=${locationId}&ctid=${ctid}&empid=${empid}`
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+      return [];
+    }
+  };
   
   export const fetchCheckLists = async (locationId, departmentId,ctid) => {
     try {
       const response = await fetch(
         `http://10.10.9.89:203/api/Users/CheckListMasterListByDepartment?locationid=${locationId}&departmentid=${departmentId}&ctid=${ctid}`
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching checklists:", error);
+      return [];
+    }
+  };
+  export const getfetchCheckLists = async (locationId, departmentId,ctid,id) => {
+    try {
+      const response = await fetch(
+        `http://10.10.9.89:203/api/Users/CheckListMasterListByDepartment?empid=${id}&locationid=${locationId}&departmentid=${departmentId}&ctid=${ctid}`
       );
       const data = await response.json();
       return data;

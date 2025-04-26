@@ -14,7 +14,7 @@ import { fetchChecklistByRole,AllCheckListType} from "../../services/scheduleche
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-
+ 
 function TypeofCheckList({ navigation, route }) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const router = useRouter();
@@ -91,7 +91,8 @@ function TypeofCheckList({ navigation, route }) {
   useEffect(() => {
     const fetchData = async () => {
       if (!EmpID || !locationid) return; // Prevent execution if values are missing
-  
+      console.log("Fetching Checklist for Location ID:", EmpID);
+
       console.log("Fetching Checklist for Location ID:", locationid);
       try {
         const data = await fetchChecklistByRole(EmpID, locationid);
